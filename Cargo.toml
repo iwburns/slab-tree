@@ -1,0 +1,8 @@
+[package]
+name = "slab_tree"
+version = "0.1.0"
+authors = ["Ian <iwburns8@gmail.com>"]
+
+[dependencies]
+snowflake = "1.3.0"
+slab = "0.4.0"
