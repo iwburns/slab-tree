@@ -73,18 +73,12 @@ impl <T> CoreTree<T> {
 
     pub fn get(&self, node_id: &NodeId) -> Result<&Node<T>, NodeIdError> {
         self.validate_node_id(node_id)?;
-        match self.slab.get(node_id.index) {
-            Some(node) => Ok(node),
-            None => Err(NodeIdError::BadNodeId),
-        }
+        self.slab.get(node_id.index).ok_or(NodeIdError::BadNodeId)
     }
 
     pub fn get_mut(&mut self, node_id: &NodeId) -> Result<&mut Node<T>, NodeIdError> {
         self.validate_node_id(node_id)?;
-        match self.slab.get_mut(node_id.index) {
-            Some(node) => Ok(node),
-            None => Err(NodeIdError::BadNodeId),
-        }
+        self.slab.get_mut(node_id.index).ok_or(NodeIdError::BadNodeId)
     }
 
     pub unsafe fn get_unchecked(&self, node_id: &NodeId) -> &Node<T> {
