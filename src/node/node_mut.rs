@@ -7,34 +7,23 @@ pub struct NodeMut<'a, T: 'a> {
 }
 
 impl<'a, T: 'a> NodeMut<'a, T> {
+    pub fn data(&mut self) -> &mut T { unimplemented!() }
+
     pub fn parent(&mut self) -> Option<NodeMut<T>> {
-        // todo: fix when non-lexical-lifetimes comes out
-        let parent_id;
-        {
-            let node = unsafe {
-                self.tree.get_node_unchecked(&self.node_id)
-            };
-            parent_id = node.parent.clone()?;
-        }
-        let parent = unsafe {
-            self.tree.get_unchecked_mut(&parent_id)
+        let parent_id = {
+            let node = unsafe { self.tree.get_node_unchecked(&self.node_id) };
+            node.parent.clone()?
         };
+        let parent = unsafe { self.tree.get_unchecked_mut(&parent_id) };
         Some(parent)
     }
 
-    pub fn append() {
-        unimplemented!()
-    }
-
-    pub fn prepend() {
-        unimplemented!()
-    }
-
-    pub fn remove_first() {
-        unimplemented!()
-    }
-
-    pub fn remove_last() {
-        unimplemented!()
-    }
+    pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> { unimplemented!() }
+    pub fn next_sibling(&mut self) -> Option<NodeMut<T>> { unimplemented!() }
+    pub fn first_child(&mut self) -> Option<NodeMut<T>> { unimplemented!() }
+    pub fn last_child(&mut self) -> Option<NodeMut<T>> { unimplemented!() }
+    pub fn append(&mut self, data: T) -> NodeId { unimplemented!() }
+    pub fn prepend(&mut self, data: T) -> NodeId { unimplemented!() }
+    pub fn remove_first(&mut self) -> Option<T> { unimplemented!() }
+    pub fn remove_last(&mut self) -> Option<T> { unimplemented!() }
 }
