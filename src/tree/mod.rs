@@ -1,12 +1,12 @@
 pub mod core;
 pub mod error;
 
-use node::Node;
-use node::node_ref::NodeRef;
-use node::node_mut::NodeMut;
 use self::core::CoreTree;
 use self::core::NodeId;
 use self::error::NodeIdError;
+use node::Node;
+use node::node_mut::NodeMut;
+use node::node_ref::NodeRef;
 
 pub struct Tree<T> {
     root_id: Option<NodeId>,
@@ -24,15 +24,11 @@ impl<T> Tree<T> {
     }
 
     pub fn root(&self) -> Option<NodeRef<T>> {
-        self.root_id
-            .clone()
-            .map(|id| self.new_node_ref(id))
+        self.root_id.clone().map(|id| self.new_node_ref(id))
     }
 
     pub fn root_mut(&mut self) -> Option<NodeMut<T>> {
-        self.root_id
-            .clone()
-            .map(move |id| self.new_node_mut(id))
+        self.root_id.clone().map(move |id| self.new_node_mut(id))
     }
 
     pub fn get(&self, node_id: &NodeId) -> Result<NodeRef<T>, NodeIdError> {
@@ -75,5 +71,3 @@ impl<T> Tree<T> {
         }
     }
 }
-
-

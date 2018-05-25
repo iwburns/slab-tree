@@ -1,5 +1,5 @@
-extern crate snowflake;
 extern crate slab;
+extern crate snowflake;
 
-pub mod tree;
 pub mod node;
+pub mod tree;

@@ -1,5 +1,5 @@
-use snowflake::ProcessUniqueId;
 use slab::Slab;
+use snowflake::ProcessUniqueId;
 
 use node::Node;
 use tree::error::*;
@@ -26,7 +26,7 @@ pub(crate) struct CoreTree<T> {
     slab: Slab<Node<T>>,
 }
 
-impl <T> CoreTree<T> {
+impl<T> CoreTree<T> {
     pub(crate) fn new(capacity: usize) -> CoreTree<T> {
         CoreTree {
             id: ProcessUniqueId::new(),
@@ -78,7 +78,9 @@ impl <T> CoreTree<T> {
 
     pub(crate) fn get_mut(&mut self, node_id: &NodeId) -> Result<&mut Node<T>, NodeIdError> {
         self.validate_node_id(node_id)?;
-        self.slab.get_mut(node_id.index).ok_or(NodeIdError::BadNodeId)
+        self.slab
+            .get_mut(node_id.index)
+            .ok_or(NodeIdError::BadNodeId)
     }
 
     pub(crate) unsafe fn get_unchecked(&self, node_id: &NodeId) -> &Node<T> {
@@ -208,7 +210,7 @@ mod tests {
 
         let id = tree.insert(Node::new(1));
         assert_eq!(tree.get(&id).unwrap().data, 1);
-        
+
         let one = tree.remove(id);
         assert_eq!(one.data, 1);
     }
