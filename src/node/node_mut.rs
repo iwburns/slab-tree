@@ -1,3 +1,4 @@
+use node::Node;
 use tree::Tree;
 use tree::core::NodeId;
 
@@ -8,18 +9,18 @@ pub struct NodeMut<'a, T: 'a> {
 
 impl<'a, T: 'a> NodeMut<'a, T> {
     pub fn data(&mut self) -> &mut T {
-        unsafe {
-            &mut self.tree.get_node_unchecked_mut(&self.node_id).data
-        }
+        unsafe { &mut self.tree.get_node_unchecked_mut(&self.node_id).data }
+    }
+
+    fn get_self_as_node(&mut self) -> &Node<T> {
+        unsafe { self.tree.get_node_unchecked(&self.node_id) }
     }
 
     pub fn parent(&mut self) -> Option<NodeMut<T>> {
-        let parent_id = {
-            let node = unsafe { self.tree.get_node_unchecked(&self.node_id) };
-            node.parent.clone()?
-        };
-        let parent = unsafe { self.tree.get_unchecked_mut(&parent_id) };
-        Some(parent)
+        self.get_self_as_node()
+            .parent
+            .clone()
+            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
     }
 
     pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> {

@@ -158,6 +158,5 @@ mod tree_tests {
             *tree.root_mut().unwrap().data() = 2;
             assert_eq!(tree.root_mut().unwrap().data(), &mut 2);
         }
-
     }
 }
