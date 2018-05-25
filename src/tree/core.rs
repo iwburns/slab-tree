@@ -62,8 +62,8 @@ impl<T> CoreTree<T> {
         self.slab.is_empty()
     }
 
-    pub(crate) fn insert(&mut self, node: Node<T>) -> NodeId {
-        let key = self.slab.insert(node);
+    pub(crate) fn insert(&mut self, data: T) -> NodeId {
+        let key = self.slab.insert(Node::new(data));
         self.new_node_id(key)
     }
 
@@ -125,7 +125,7 @@ mod tests {
         let mut tree = CoreTree::new(capacity);
         assert_eq!(tree.capacity(), capacity);
 
-        tree.insert(Node::new(1));
+        tree.insert(1);
 
         tree.reserve(extra);
         assert!(tree.capacity() >= capacity + extra);
@@ -139,7 +139,7 @@ mod tests {
         let mut tree = CoreTree::new(capacity);
         assert_eq!(tree.capacity(), capacity);
 
-        tree.insert(Node::new(1));
+        tree.insert(1);
 
         tree.reserve_exact(extra);
         assert_eq!(tree.capacity(), capacity + extra);
@@ -152,7 +152,7 @@ mod tests {
         let mut tree = CoreTree::new(capacity);
         assert_eq!(tree.capacity(), capacity);
 
-        tree.insert(Node::new(1));
+        tree.insert(1);
 
         tree.shrink_to_fit();
         assert_eq!(tree.capacity(), 1);
@@ -162,7 +162,7 @@ mod tests {
     fn clear() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
+        let id = tree.insert(1);
         assert_eq!(tree.get(&id).unwrap().data, 1);
 
         tree.clear();
@@ -177,10 +177,10 @@ mod tests {
         let mut tree = CoreTree::new(0);
         assert_eq!(tree.len(), 0);
 
-        tree.insert(Node::new(1));
+        tree.insert(1);
         assert_eq!(tree.len(), 1);
 
-        tree.insert(Node::new(3));
+        tree.insert(3);
         assert_eq!(tree.len(), 2);
     }
 
@@ -189,7 +189,7 @@ mod tests {
         let mut tree = CoreTree::new(0);
         assert!(tree.is_empty());
 
-        tree.insert(Node::new(1));
+        tree.insert(1);
         assert!(!tree.is_empty());
     }
 
@@ -197,8 +197,8 @@ mod tests {
     fn insert() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
-        let id2 = tree.insert(Node::new(3));
+        let id = tree.insert(1);
+        let id2 = tree.insert(3);
 
         assert_eq!(tree.get(&id).unwrap().data, 1);
         assert_eq!(tree.get(&id2).unwrap().data, 3);
@@ -208,7 +208,7 @@ mod tests {
     fn remove() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
+        let id = tree.insert(1);
         assert_eq!(tree.get(&id).unwrap().data, 1);
 
         let one = tree.remove(id);
@@ -219,8 +219,8 @@ mod tests {
     fn get() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
-        let id2 = tree.insert(Node::new(3));
+        let id = tree.insert(1);
+        let id2 = tree.insert(3);
 
         assert_eq!(tree.get(&id).unwrap().data, 1);
         assert_eq!(tree.get(&id2).unwrap().data, 3);
@@ -230,8 +230,8 @@ mod tests {
     fn get_mut() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
-        let id2 = tree.insert(Node::new(3));
+        let id = tree.insert(1);
+        let id2 = tree.insert(3);
 
         assert_eq!(tree.get_mut(&id).unwrap().data, 1);
         assert_eq!(tree.get_mut(&id2).unwrap().data, 3);
@@ -241,8 +241,8 @@ mod tests {
     fn get_unchecked() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
-        let id2 = tree.insert(Node::new(3));
+        let id = tree.insert(1);
+        let id2 = tree.insert(3);
 
         unsafe {
             assert_eq!(tree.get_unchecked(&id).data, 1);
@@ -256,8 +256,8 @@ mod tests {
     fn get_unchecked_mut() {
         let mut tree = CoreTree::new(0);
 
-        let id = tree.insert(Node::new(1));
-        let id2 = tree.insert(Node::new(3));
+        let id = tree.insert(1);
+        let id2 = tree.insert(3);
 
         unsafe {
             assert_eq!(tree.get_unchecked_mut(&id).data, 1);

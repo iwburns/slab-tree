@@ -8,7 +8,9 @@ pub struct NodeRef<'a, T: 'a> {
 
 impl<'a, T: 'a> NodeRef<'a, T> {
     pub fn data(&self) -> &T {
-        unimplemented!()
+        unsafe {
+            &self.tree.get_node_unchecked(&self.node_id).data
+        }
     }
     pub fn parent(&self) -> Option<NodeRef<T>> {
         unimplemented!()

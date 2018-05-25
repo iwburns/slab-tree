@@ -8,7 +8,9 @@ pub struct NodeMut<'a, T: 'a> {
 
 impl<'a, T: 'a> NodeMut<'a, T> {
     pub fn data(&mut self) -> &mut T {
-        unimplemented!()
+        unsafe {
+            &mut self.tree.get_node_unchecked_mut(&self.node_id).data
+        }
     }
 
     pub fn parent(&mut self) -> Option<NodeMut<T>> {

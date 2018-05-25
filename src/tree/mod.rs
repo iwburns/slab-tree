@@ -8,12 +8,47 @@ use node::Node;
 use node::node_mut::NodeMut;
 use node::node_ref::NodeRef;
 
+//todo: document this
+
+pub struct TreeBuilder<T> {
+    root: Option<T>,
+    capacity: Option<usize>,
+}
+
+impl<T> TreeBuilder<T> {
+    pub fn new() -> TreeBuilder<T> {
+        TreeBuilder {
+            root: None,
+            capacity: None,
+        }
+    }
+
+    pub fn with_root(self, root: T) -> TreeBuilder<T> {
+        TreeBuilder {
+            root: Some(root),
+            capacity: self.capacity,
+        }
+    }
+
+    pub fn with_capacity(self, capacity: usize) -> TreeBuilder<T> {
+        TreeBuilder {
+            root: self.root,
+            capacity: Some(capacity),
+        }
+    }
+
+    pub fn build(self) -> Tree<T> {
+        let mut core_tree = CoreTree::new(self.capacity.unwrap_or(0));
+        let root_id = self.root.map(|data| core_tree.insert(data));
+
+        Tree { root_id, core_tree }
+    }
+}
+
 pub struct Tree<T> {
     root_id: Option<NodeId>,
     core_tree: CoreTree<T>,
 }
-
-// todo: make a builder for this
 
 impl<T> Tree<T> {
     pub fn new() -> Tree<T> {
@@ -69,5 +104,60 @@ impl<T> Tree<T> {
             node_id,
             tree: self,
         }
+    }
+}
+
+#[cfg(test)]
+mod tree_builder_tests {
+    use super::*;
+
+    #[test]
+    fn with_root_and_capacity() {
+        let tb = TreeBuilder::new().with_root(1).with_capacity(2);
+        assert!(tb.root.is_some());
+        assert_eq!(tb.root.unwrap(), 1);
+        assert_eq!(tb.capacity.unwrap(), 2);
+    }
+
+    #[test]
+    fn build() {
+        let tree = TreeBuilder::new().with_root(1).with_capacity(2).build();
+        assert!(tree.root_id.is_some());
+        assert_eq!(tree.core_tree.capacity(), 2);
+    }
+}
+
+#[cfg(test)]
+mod tree_tests {
+    use super::*;
+
+    #[test]
+    fn root() {
+        {
+            let tree: Tree<i32> = Tree::new();
+            assert!(tree.root().is_none());
+        }
+        {
+            let tree = TreeBuilder::new().with_root(1).build();
+            assert!(tree.root().is_some());
+            assert_eq!(tree.root().unwrap().data(), &1);
+        }
+    }
+
+    #[test]
+    fn root_mut() {
+        {
+            let mut tree: Tree<i32> = Tree::new();
+            assert!(tree.root_mut().is_none());
+        }
+        {
+            let mut tree = TreeBuilder::new().with_root(1).build();
+            assert!(tree.root().is_some());
+            assert_eq!(tree.root_mut().unwrap().data(), &mut 1);
+
+            *tree.root_mut().unwrap().data() = 2;
+            assert_eq!(tree.root_mut().unwrap().data(), &mut 2);
+        }
+
     }
 }
