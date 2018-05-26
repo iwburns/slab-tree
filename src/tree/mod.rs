@@ -137,43 +137,34 @@ mod tree_tests {
 
     #[test]
     fn root_id() {
-        {
-            let tree: Tree<i32> = Tree::new();
-            assert!(tree.root_id().is_none());
-        }
-        {
-            let tree = TreeBuilder::new().with_root(1).build();
-            assert!(tree.root_id().is_some());
-        }
+        let tree: Tree<i32> = Tree::new();
+        assert!(tree.root_id().is_none());
+
+        let tree = TreeBuilder::new().with_root(1).build();
+        assert!(tree.root_id().is_some());
     }
 
     #[test]
     fn root() {
-        {
-            let tree: Tree<i32> = Tree::new();
-            assert!(tree.root().is_none());
-        }
-        {
-            let tree = TreeBuilder::new().with_root(1).build();
-            assert!(tree.root().is_some());
-            assert_eq!(tree.root().unwrap().data(), &1);
-        }
+        let tree: Tree<i32> = Tree::new();
+        assert!(tree.root().is_none());
+
+        let tree = TreeBuilder::new().with_root(1).build();
+        assert!(tree.root().is_some());
+        assert_eq!(tree.root().unwrap().data(), &1);
     }
 
     #[test]
     fn root_mut() {
-        {
-            let mut tree: Tree<i32> = Tree::new();
-            assert!(tree.root_mut().is_none());
-        }
-        {
-            let mut tree = TreeBuilder::new().with_root(1).build();
-            assert!(tree.root().is_some());
-            assert_eq!(tree.root_mut().unwrap().data(), &mut 1);
+        let mut tree: Tree<i32> = Tree::new();
+        assert!(tree.root_mut().is_none());
 
-            *tree.root_mut().unwrap().data() = 2;
-            assert_eq!(tree.root_mut().unwrap().data(), &mut 2);
-        }
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        assert!(tree.root().is_some());
+        assert_eq!(tree.root_mut().unwrap().data(), &mut 1);
+
+        *tree.root_mut().unwrap().data() = 2;
+        assert_eq!(tree.root_mut().unwrap().data(), &mut 2);
     }
 
     #[test]
@@ -259,7 +250,7 @@ mod tree_tests {
         let root_id = tree.root_id().cloned();
         assert!(root_id.is_some());
 
-        let mut root = unsafe {
+        let root = unsafe {
             tree.get_node_unchecked_mut(&root_id.unwrap())
         };
 
