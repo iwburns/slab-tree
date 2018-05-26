@@ -7,6 +7,7 @@ use self::error::NodeIdError;
 use node::Node;
 use node::node_mut::NodeMut;
 use node::node_ref::NodeRef;
+use node::Relatives;
 
 //todo: document this
 
@@ -46,8 +47,8 @@ impl<T> TreeBuilder<T> {
 }
 
 pub struct Tree<T> {
-    root_id: Option<NodeId>,
-    core_tree: CoreTree<T>,
+    pub(crate) root_id: Option<NodeId>,
+    pub(crate) core_tree: CoreTree<T>,
 }
 
 impl<T> Tree<T> {
@@ -107,6 +108,38 @@ impl<T> Tree<T> {
         NodeMut {
             node_id,
             tree: self,
+        }
+    }
+
+    pub(crate) fn set_node_parent(&mut self, node_id: NodeId, parent_id: NodeId) {
+        let mut node = unsafe { self.get_node_unchecked_mut(&node_id) };
+        node.parent = Some(parent_id);
+    }
+    pub(crate) fn set_node_prev_sibling(&mut self, node_id: NodeId, prev_sibling: NodeId) {
+        let mut node = unsafe { self.get_node_unchecked_mut(&node_id) };
+        node.prev_sibling = Some(prev_sibling);
+    }
+    pub(crate) fn set_node_next_sibling(&mut self, node_id: NodeId, next_sibling: NodeId) {
+        let mut node = unsafe { self.get_node_unchecked_mut(&node_id) };
+        node.next_sibling = Some(next_sibling);
+    }
+    pub(crate) fn set_node_first_child(&mut self, node_id: NodeId, first_child: NodeId) {
+        let mut node = unsafe { self.get_node_unchecked_mut(&node_id) };
+        node.first_child = Some(first_child);
+    }
+    pub(crate) fn set_node_last_child(&mut self, node_id: NodeId, last_child: NodeId) {
+        let mut node = unsafe { self.get_node_unchecked_mut(&node_id) };
+        node.last_child = Some(last_child);
+    }
+
+    pub(crate) fn get_node_relatives(&self, node_id: &NodeId) -> Relatives {
+        let node = unsafe { self.get_node_unchecked(node_id) };
+        Relatives {
+            parent: node.parent.clone(),
+            prev_sibling: node.prev_sibling.clone(),
+            next_sibling: node.next_sibling.clone(),
+            first_child: node.first_child.clone(),
+            last_child: node.last_child.clone(),
         }
     }
 }
