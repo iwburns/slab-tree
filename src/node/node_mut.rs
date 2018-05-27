@@ -8,6 +8,10 @@ pub struct NodeMut<'a, T: 'a> {
 }
 
 impl<'a, T: 'a> NodeMut<'a, T> {
+    pub fn node_id(&self) -> &NodeId {
+        &self.node_id
+    }
+
     pub fn data(&mut self) -> &mut T {
         unsafe { &mut self.tree.get_node_unchecked_mut(&self.node_id).data }
     }
@@ -47,7 +51,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
-    pub fn append(&mut self, data: T) -> NodeId {
+    pub fn append(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
         let current_id = &self.node_id;
@@ -65,10 +69,10 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             self.tree.set_next_sibling(&node_id, Some(new_id.clone()));
         }
 
-        new_id
+        self.tree.new_node_mut(new_id)
     }
 
-    pub fn prepend(&mut self, data: T) -> NodeId {
+    pub fn prepend(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
         let current_id = &self.node_id;
@@ -86,7 +90,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             self.tree.set_prev_sibling(&node_id, Some(new_id.clone()));
         }
 
-        new_id
+        self.tree.new_node_mut(new_id)
     }
 
     pub fn remove_first(&mut self) -> Option<T> {
@@ -143,6 +147,15 @@ impl<'a, T: 'a> NodeMut<'a, T> {
 #[cfg(test)]
 mod node_mut_tests {
     use tree::TreeBuilder;
+
+    #[test]
+    fn node_id() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().cloned().unwrap();
+
+        let root_mut = tree.get_mut(&root_id).ok().unwrap();
+        assert_eq!(&root_id, root_mut.node_id());
+    }
 
     #[test]
     fn data() {
@@ -204,7 +217,7 @@ mod node_mut_tests {
         let new_id;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.append(2);
+            new_id = root_mut.append(2).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -234,8 +247,8 @@ mod node_mut_tests {
         let new_id_2;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.append(2);
-            new_id_2 = root_mut.append(3);
+            new_id = root_mut.append(2).node_id().clone();
+            new_id_2 = root_mut.append(3).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -276,9 +289,9 @@ mod node_mut_tests {
         let new_id_3;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.append(2);
-            new_id_2 = root_mut.append(3);
-            new_id_3 = root_mut.append(4);
+            new_id = root_mut.append(2).node_id().clone();
+            new_id_2 = root_mut.append(3).node_id().clone();
+            new_id_3 = root_mut.append(4).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -334,7 +347,7 @@ mod node_mut_tests {
         let new_id;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.prepend(2);
+            new_id = root_mut.prepend(2).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -364,8 +377,8 @@ mod node_mut_tests {
         let new_id_2;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.prepend(2);
-            new_id_2 = root_mut.prepend(3);
+            new_id = root_mut.prepend(2).node_id().clone();
+            new_id_2 = root_mut.prepend(3).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -406,9 +419,9 @@ mod node_mut_tests {
         let new_id_3;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            new_id = root_mut.prepend(2);
-            new_id_2 = root_mut.prepend(3);
-            new_id_3 = root_mut.prepend(4);
+            new_id = root_mut.prepend(2).node_id().clone();
+            new_id_2 = root_mut.prepend(3).node_id().clone();
+            new_id_3 = root_mut.prepend(4).node_id().clone();
         }
 
         let root_node = unsafe { tree.get_node_unchecked(&root_id) };
@@ -498,7 +511,7 @@ mod node_mut_tests {
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
             root_mut.append(2);
-            node_id = root_mut.append(3);
+            node_id = root_mut.append(3).node_id().clone();
 
             let first_child_data = root_mut.remove_first();
             assert_eq!(first_child_data, Some(2));
@@ -526,8 +539,8 @@ mod node_mut_tests {
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
             root_mut.append(2);
-            node_id = root_mut.append(3);
-            node_id_2 = root_mut.append(4);
+            node_id = root_mut.append(3).node_id().clone();
+            node_id_2 = root_mut.append(4).node_id().clone();
 
             let first_child_data = root_mut.remove_first();
             assert_eq!(first_child_data, Some(2));
@@ -593,7 +606,7 @@ mod node_mut_tests {
         let node_id;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            node_id = root_mut.append(2);
+            node_id = root_mut.append(2).node_id().clone();
             root_mut.append(3);
 
             let last_child_data = root_mut.remove_last();
@@ -621,8 +634,8 @@ mod node_mut_tests {
         let node_id_2;
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
-            node_id = root_mut.append(2);
-            node_id_2 = root_mut.append(3);
+            node_id = root_mut.append(2).node_id().clone();
+            node_id_2 = root_mut.append(3).node_id().clone();
             root_mut.append(4);
 
             let last_child_data = root_mut.remove_last();

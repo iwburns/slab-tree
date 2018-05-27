@@ -109,14 +109,14 @@ impl<T> Tree<T> {
         self.core_tree.get_unchecked_mut(node_id)
     }
 
-    fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
+    pub(crate) fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
         NodeRef {
             node_id,
             tree: self,
         }
     }
 
-    fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
+    pub(crate) fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
         NodeMut {
             node_id,
             tree: self,
