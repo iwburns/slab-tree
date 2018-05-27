@@ -16,6 +16,12 @@ pub struct TreeBuilder<T> {
     capacity: Option<usize>,
 }
 
+impl<T> Default for TreeBuilder<T> {
+    fn default() -> TreeBuilder<T> {
+        TreeBuilder::new()
+    }
+}
+
 impl<T> TreeBuilder<T> {
     pub fn new() -> TreeBuilder<T> {
         TreeBuilder {
@@ -49,6 +55,12 @@ impl<T> TreeBuilder<T> {
 pub struct Tree<T> {
     pub(crate) root_id: Option<NodeId>,
     pub(crate) core_tree: CoreTree<T>,
+}
+
+impl<T> Default for Tree<T> {
+    fn default() -> Tree<T> {
+        Tree::new()
+    }
 }
 
 impl<T> Tree<T> {

@@ -16,57 +16,54 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .parent
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
+            .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
     pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .prev_sibling
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
+            .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
     pub fn next_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .next_sibling
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
+            .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
     pub fn first_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .first_child
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
+            .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
     pub fn last_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .last_child
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked_mut(&parent_id) })
+            .map(move |node_id| unsafe { self.tree.get_unchecked_mut(&node_id) })
     }
 
     pub fn append(&mut self, data: T) -> NodeId {
         let new_id = self.tree.core_tree.insert(data);
 
         let current_id = &self.node_id;
-        let current_node_relatives = self.tree.get_node_relatives(current_id);
+        let relatives = self.tree.get_node_relatives(current_id);
 
+        let prev_sibling = relatives.last_child.clone();
         self.tree.set_parent(&new_id, Some(current_id.clone()));
-        self.tree
-            .set_prev_sibling(&new_id, current_node_relatives.last_child.clone());
+        self.tree.set_prev_sibling(&new_id, prev_sibling.clone());
 
-        self.tree.set_first_child(
-            current_id,
-            current_node_relatives
-                .first_child
-                .or_else(|| Some(new_id.clone())),
-        );
+        let first_child = relatives.first_child.or_else(|| Some(new_id.clone()));
+        self.tree.set_first_child(current_id, first_child);
         self.tree.set_last_child(current_id, Some(new_id.clone()));
 
-        self.tree
-            .set_prev_siblings_next_sibling(&new_id, Some(new_id.clone()));
+        if let Some(node_id) = prev_sibling {
+            self.tree.set_next_sibling(&node_id, Some(new_id.clone()));
+        }
 
         new_id
     }
@@ -75,32 +72,29 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let new_id = self.tree.core_tree.insert(data);
 
         let current_id = &self.node_id;
-        let current_node_relatives = self.tree.get_node_relatives(&self.node_id);
+        let relatives = self.tree.get_node_relatives(&self.node_id);
 
+        let next_sibling = relatives.first_child.clone();
         self.tree.set_parent(&new_id, Some(current_id.clone()));
-        self.tree
-            .set_next_sibling(&new_id, current_node_relatives.first_child.clone());
+        self.tree.set_next_sibling(&new_id, next_sibling.clone());
 
+        let last_child = relatives.last_child.or_else(|| Some(new_id.clone()));
         self.tree.set_first_child(current_id, Some(new_id.clone()));
-        self.tree.set_last_child(
-            current_id,
-            current_node_relatives
-                .last_child
-                .or_else(|| Some(new_id.clone())),
-        );
+        self.tree.set_last_child(current_id, last_child);
 
-        self.tree
-            .set_next_siblings_prev_sibling(&new_id, Some(new_id.clone()));
+        if let Some(node_id) = next_sibling {
+            self.tree.set_prev_sibling(&node_id, Some(new_id.clone()));
+        }
 
         new_id
     }
 
     pub fn remove_first(&mut self) -> Option<T> {
         let current_id = &self.node_id;
-        let current_node_relatives = self.tree.get_node_relatives(current_id);
+        let current_relatives = self.tree.get_node_relatives(current_id);
 
-        let first = current_node_relatives.first_child;
-        let last = current_node_relatives.last_child;
+        let first = current_relatives.first_child;
+        let last = current_relatives.last_child;
 
         let first_id;
         if first == last {
@@ -109,10 +103,9 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             self.tree.set_last_child(current_id, None);
         } else {
             first_id = first?;
-            let first_node_relatives = self.tree.get_node_relatives(&first_id);
+            let first_child = self.tree.get_node_relatives(&first_id).next_sibling;
 
-            self.tree
-                .set_first_child(current_id, first_node_relatives.next_sibling);
+            self.tree.set_first_child(current_id, first_child);
             self.tree.set_next_siblings_prev_sibling(&first_id, None);
         }
 
@@ -133,10 +126,9 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             self.tree.set_last_child(current_id, None);
         } else {
             last_id = last?;
-            let last_node_relatives = self.tree.get_node_relatives(&last_id);
+            let last_child = self.tree.get_node_relatives(&last_id).prev_sibling;
 
-            self.tree
-                .set_last_child(current_id, last_node_relatives.prev_sibling);
+            self.tree.set_last_child(current_id, last_child);
             self.tree.set_prev_siblings_next_sibling(&last_id, None);
         }
 
@@ -145,10 +137,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
 
     fn get_self_as_node(&self) -> &Node<T> {
         unsafe { self.tree.get_node_unchecked(&self.node_id) }
-    }
-
-    fn get_self_as_node_mut(&mut self) -> &mut Node<T> {
-        unsafe { self.tree.get_node_unchecked_mut(&self.node_id) }
     }
 }
 
