@@ -56,7 +56,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.tree.set_parent(&new_id, Some(current_id.clone()));
         self.tree.set_prev_sibling(&new_id, current_node_relatives.last_child.clone());
 
-        self.tree.set_first_child(current_id, current_node_relatives.first_child.or(Some(new_id.clone())));
+        self.tree.set_first_child(current_id, current_node_relatives.first_child.or_else(|| Some(new_id.clone())));
         self.tree.set_last_child(current_id, Some(new_id.clone()));
 
         self.tree.set_prev_siblings_next_sibling(&new_id, Some(new_id.clone()));
@@ -74,7 +74,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.tree.set_next_sibling(&new_id, current_node_relatives.first_child.clone());
 
         self.tree.set_first_child(current_id, Some(new_id.clone()));
-        self.tree.set_last_child(current_id, current_node_relatives.last_child.or(Some(new_id.clone())));
+        self.tree.set_last_child(current_id, current_node_relatives.last_child.or_else(|| Some(new_id.clone())));
 
         self.tree.set_next_siblings_prev_sibling(&new_id, Some(new_id.clone()));
 

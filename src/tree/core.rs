@@ -1,3 +1,4 @@
+use std::mem;
 use slab::Slab;
 use snowflake::ProcessUniqueId;
 
@@ -69,6 +70,7 @@ impl<T> CoreTree<T> {
 
     pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
         let node = self.slab.remove(node_id.index);
+        mem::drop(node_id);
         node.data
     }
 

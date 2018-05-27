@@ -116,9 +116,9 @@ impl<T> Tree<T> {
         current_id: &NodeId,
         next_sibling: Option<NodeId>,
     ) {
-        self.get_node_prev_sibling_id(current_id).map(|prev_sibling_id| {
+        if let Some(prev_sibling_id) = self.get_node_prev_sibling_id(current_id) {
             self.set_next_sibling(&prev_sibling_id, next_sibling);
-        });
+        }
     }
 
     pub(crate) fn set_next_siblings_prev_sibling(
@@ -126,9 +126,9 @@ impl<T> Tree<T> {
         current_id: &NodeId,
         prev_sibling: Option<NodeId>,
     ) {
-        self.get_node_next_sibling_id(current_id).map(|next_sibling_id| {
+        if let Some(next_sibling_id) = self.get_node_next_sibling_id(current_id) {
             self.set_prev_sibling(&next_sibling_id, prev_sibling);
-        });
+        }
     }
 
     pub(crate) fn set_parent(&mut self, node_id: &NodeId, parent_id: Option<NodeId>) {
