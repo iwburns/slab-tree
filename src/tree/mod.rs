@@ -111,25 +111,58 @@ impl<T> Tree<T> {
         }
     }
 
-    pub(crate) fn set_node_parent(&mut self, node_id: NodeId, parent_id: NodeId) {
-        let node = unsafe { self.get_node_unchecked_mut(&node_id) };
-        node.parent = Some(parent_id);
+    pub(crate) fn set_prev_siblings_next_sibling(
+        &mut self,
+        current_id: &NodeId,
+        next_sibling: Option<NodeId>,
+    ) {
+        self.get_node_prev_sibling_id(current_id).map(|prev_sibling_id| {
+            self.set_next_sibling(&prev_sibling_id, next_sibling);
+        });
     }
-    pub(crate) fn set_node_prev_sibling(&mut self, node_id: NodeId, prev_sibling: NodeId) {
-        let node = unsafe { self.get_node_unchecked_mut(&node_id) };
-        node.prev_sibling = Some(prev_sibling);
+
+    pub(crate) fn set_next_siblings_prev_sibling(
+        &mut self,
+        current_id: &NodeId,
+        prev_sibling: Option<NodeId>,
+    ) {
+        self.get_node_next_sibling_id(current_id).map(|next_sibling_id| {
+            self.set_prev_sibling(&next_sibling_id, prev_sibling);
+        });
     }
-    pub(crate) fn set_node_next_sibling(&mut self, node_id: NodeId, next_sibling: NodeId) {
-        let node = unsafe { self.get_node_unchecked_mut(&node_id) };
-        node.next_sibling = Some(next_sibling);
+
+    pub(crate) fn set_parent(&mut self, node_id: &NodeId, parent_id: Option<NodeId>) {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.parent = parent_id;
     }
-    pub(crate) fn set_node_first_child(&mut self, node_id: NodeId, first_child: NodeId) {
-        let node = unsafe { self.get_node_unchecked_mut(&node_id) };
-        node.first_child = Some(first_child);
+
+    pub(crate) fn set_prev_sibling(&mut self, node_id: &NodeId, prev_sibling: Option<NodeId>) {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.prev_sibling = prev_sibling;
     }
-    pub(crate) fn set_node_last_child(&mut self, node_id: NodeId, last_child: NodeId) {
-        let node = unsafe { self.get_node_unchecked_mut(&node_id) };
-        node.last_child = Some(last_child);
+
+    pub(crate) fn set_next_sibling(&mut self, node_id: &NodeId, next_sibling: Option<NodeId>) {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.next_sibling = next_sibling;
+    }
+
+    pub(crate) fn set_first_child(&mut self, node_id: &NodeId, first_child: Option<NodeId>) {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.first_child = first_child;
+    }
+
+    pub(crate) fn set_last_child(&mut self, node_id: &NodeId, last_child: Option<NodeId>) {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.last_child = last_child;
+    }
+
+    pub(crate) fn get_node_prev_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.prev_sibling.clone()
+    }
+    pub(crate) fn get_node_next_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
+        let node = unsafe { self.get_node_unchecked_mut(node_id) };
+        node.next_sibling.clone()
     }
 
     pub(crate) fn get_node_relatives(&self, node_id: &NodeId) -> Relatives {
