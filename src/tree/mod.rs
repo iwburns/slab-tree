@@ -4,10 +4,10 @@ pub mod error;
 use self::core::CoreTree;
 use self::core::NodeId;
 use self::error::NodeIdError;
-use node::Node;
-use node::Relatives;
 use node::node_mut::NodeMut;
 use node::node_ref::NodeRef;
+use node::Node;
+use node::Relatives;
 
 //todo: document this
 

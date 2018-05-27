@@ -1,6 +1,6 @@
-use std::mem;
 use slab::Slab;
 use snowflake::ProcessUniqueId;
+use std::mem;
 
 use node::Node;
 use tree::error::*;

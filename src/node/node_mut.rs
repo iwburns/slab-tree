@@ -1,6 +1,6 @@
 use node::Node;
-use tree::Tree;
 use tree::core::NodeId;
+use tree::Tree;
 
 pub struct NodeMut<'a, T: 'a> {
     pub(crate) node_id: NodeId,
@@ -54,12 +54,19 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let current_node_relatives = self.tree.get_node_relatives(current_id);
 
         self.tree.set_parent(&new_id, Some(current_id.clone()));
-        self.tree.set_prev_sibling(&new_id, current_node_relatives.last_child.clone());
+        self.tree
+            .set_prev_sibling(&new_id, current_node_relatives.last_child.clone());
 
-        self.tree.set_first_child(current_id, current_node_relatives.first_child.or_else(|| Some(new_id.clone())));
+        self.tree.set_first_child(
+            current_id,
+            current_node_relatives
+                .first_child
+                .or_else(|| Some(new_id.clone())),
+        );
         self.tree.set_last_child(current_id, Some(new_id.clone()));
 
-        self.tree.set_prev_siblings_next_sibling(&new_id, Some(new_id.clone()));
+        self.tree
+            .set_prev_siblings_next_sibling(&new_id, Some(new_id.clone()));
 
         new_id
     }
@@ -71,12 +78,19 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let current_node_relatives = self.tree.get_node_relatives(&self.node_id);
 
         self.tree.set_parent(&new_id, Some(current_id.clone()));
-        self.tree.set_next_sibling(&new_id, current_node_relatives.first_child.clone());
+        self.tree
+            .set_next_sibling(&new_id, current_node_relatives.first_child.clone());
 
         self.tree.set_first_child(current_id, Some(new_id.clone()));
-        self.tree.set_last_child(current_id, current_node_relatives.last_child.or_else(|| Some(new_id.clone())));
+        self.tree.set_last_child(
+            current_id,
+            current_node_relatives
+                .last_child
+                .or_else(|| Some(new_id.clone())),
+        );
 
-        self.tree.set_next_siblings_prev_sibling(&new_id, Some(new_id.clone()));
+        self.tree
+            .set_next_siblings_prev_sibling(&new_id, Some(new_id.clone()));
 
         new_id
     }
@@ -97,7 +111,8 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             first_id = first?;
             let first_node_relatives = self.tree.get_node_relatives(&first_id);
 
-            self.tree.set_first_child(current_id, first_node_relatives.next_sibling);
+            self.tree
+                .set_first_child(current_id, first_node_relatives.next_sibling);
             self.tree.set_next_siblings_prev_sibling(&first_id, None);
         }
 
@@ -120,7 +135,8 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             last_id = last?;
             let last_node_relatives = self.tree.get_node_relatives(&last_id);
 
-            self.tree.set_last_child(current_id, last_node_relatives.prev_sibling);
+            self.tree
+                .set_last_child(current_id, last_node_relatives.prev_sibling);
             self.tree.set_prev_siblings_next_sibling(&last_id, None);
         }
 
