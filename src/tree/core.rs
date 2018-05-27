@@ -67,8 +67,9 @@ impl<T> CoreTree<T> {
         self.new_node_id(key)
     }
 
-    pub(crate) fn remove(&mut self, node_id: NodeId) -> Node<T> {
-        self.slab.remove(node_id.index)
+    pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
+        let node = self.slab.remove(node_id.index);
+        node.data
     }
 
     pub(crate) fn get(&self, node_id: &NodeId) -> Result<&Node<T>, NodeIdError> {
@@ -212,7 +213,7 @@ mod tests {
         assert_eq!(tree.get(&id).unwrap().data, 1);
 
         let one = tree.remove(id);
-        assert_eq!(one.data, 1);
+        assert_eq!(one, 1);
     }
 
     #[test]

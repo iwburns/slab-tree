@@ -63,7 +63,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         }
         {
             let mut new_node_mut = self.tree.get_mut(&new_id).ok().unwrap();
-            new_node_mut.set_prev_siblings_next_sibling(new_id.clone());
+            new_node_mut.set_prev_siblings_next_sibling(Some(new_id.clone()));
         }
 
         new_id
@@ -78,7 +78,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
             new_node.parent = Some(self.node_id.clone());
             new_node.next_sibling = current_node_relatives.first_child.clone();
         }
-
         {
             let current_node = self.get_self_as_node_mut();
             current_node.first_child = Some(new_id.clone());
@@ -86,15 +85,38 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         }
         {
             let mut new_node_mut = self.tree.get_mut(&new_id).ok().unwrap();
-            new_node_mut.set_next_sibling_prev_sibling(new_id.clone());
+            new_node_mut.set_next_siblings_prev_sibling(Some(new_id.clone()));
         }
 
         new_id
     }
 
     pub fn remove_first(&mut self) -> Option<T> {
-        unimplemented!()
+        let current_node_relatives = self.tree.get_node_relatives(&self.node_id);
+
+        let first = current_node_relatives.first_child;
+        let last = current_node_relatives.last_child;
+
+        let first_id;
+        if first == last {
+            first_id = first?;
+            let current_node = self.get_self_as_node_mut();
+            current_node.first_child = None;
+            current_node.last_child = None;
+        } else {
+            first_id = first?;
+            let first_node_relatives = self.tree.get_node_relatives(&first_id);
+            {
+                let current_node = self.get_self_as_node_mut();
+                current_node.first_child = first_node_relatives.next_sibling;
+            }
+            let mut first_node = self.tree.get_mut(&first_id).ok().unwrap();
+            first_node.set_next_siblings_prev_sibling(None);
+        }
+
+        Some(self.tree.core_tree.remove(first_id))
     }
+
     pub fn remove_last(&mut self) -> Option<T> {
         unimplemented!()
     }
@@ -107,19 +129,21 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         unsafe { self.tree.get_node_unchecked_mut(&self.node_id) }
     }
 
-    fn set_prev_siblings_next_sibling(&mut self, node_id: NodeId) {
+    //todo: move these into tree as pub(crate) items
+
+    fn set_prev_siblings_next_sibling(&mut self, node_id: Option<NodeId>) {
         let prev = self.get_self_as_node().prev_sibling.clone();
         if let Some(prev_sibling) = prev.map(|id| unsafe { self.tree.get_node_unchecked_mut(&id) })
         {
-            prev_sibling.next_sibling = Some(node_id);
+            prev_sibling.next_sibling = node_id;
         }
     }
 
-    fn set_next_sibling_prev_sibling(&mut self, node_id: NodeId) {
+    fn set_next_siblings_prev_sibling(&mut self, node_id: Option<NodeId>) {
         let next = self.get_self_as_node().next_sibling.clone();
         if let Some(next_sibling) = next.map(|id| unsafe { self.tree.get_node_unchecked_mut(&id) })
         {
-            next_sibling.prev_sibling = Some(node_id);
+            next_sibling.prev_sibling = node_id;
         }
     }
 }
@@ -438,5 +462,101 @@ mod node_mut_tests {
         assert_eq!(new_node.data(), &2);
         assert_eq!(new_node_2.data(), &3);
         assert_eq!(new_node_3.data(), &4);
+    }
+
+    #[test]
+    fn remove_first_no_children_present() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().cloned().unwrap();
+
+        {
+            let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
+            let first_child_data = root_mut.remove_first();
+            assert_eq!(first_child_data, None);
+        }
+
+        let root_node = unsafe { tree.get_node_unchecked(&root_id) };
+        assert_eq!(root_node.first_child, None);
+        assert_eq!(root_node.last_child, None);
+    }
+
+    #[test]
+    fn remove_first_single_child_present() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().cloned().unwrap();
+
+        {
+            let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
+            root_mut.append(2);
+            let first_child_data = root_mut.remove_first();
+            assert_eq!(first_child_data, Some(2));
+        }
+
+        let root_node = unsafe { tree.get_node_unchecked(&root_id) };
+        assert_eq!(root_node.first_child, None);
+        assert_eq!(root_node.last_child, None);
+    }
+
+    #[test]
+    fn remove_first_two_children_present() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().cloned().unwrap();
+
+        let node_id;
+        {
+            let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
+            root_mut.append(2);
+            node_id = root_mut.append(3);
+
+            let first_child_data = root_mut.remove_first();
+            assert_eq!(first_child_data, Some(2));
+        }
+
+        let root_node = unsafe { tree.get_node_unchecked(&root_id) };
+        assert_eq!(root_node.first_child, Some(node_id.clone()));
+        assert_eq!(root_node.last_child, Some(node_id.clone()));
+
+        let node = unsafe { tree.get_node_unchecked(&node_id) };
+        assert_eq!(node.parent, Some(root_id.clone()));
+        assert_eq!(node.prev_sibling, None);
+        assert_eq!(node.next_sibling, None);
+        assert_eq!(node.first_child, None);
+        assert_eq!(node.last_child, None);
+    }
+
+    #[test]
+    fn remove_first_three_children_present() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().cloned().unwrap();
+
+        let node_id;
+        let node_id_2;
+        {
+            let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
+            root_mut.append(2);
+            node_id = root_mut.append(3);
+            node_id_2 = root_mut.append(4);
+
+            let first_child_data = root_mut.remove_first();
+            assert_eq!(first_child_data, Some(2));
+        }
+
+        let root_node = unsafe { tree.get_node_unchecked(&root_id) };
+        assert_eq!(root_node.first_child, Some(node_id.clone()));
+        assert_eq!(root_node.last_child, Some(node_id_2.clone()));
+
+        let node = unsafe { tree.get_node_unchecked(&node_id) };
+        assert_eq!(node.parent, Some(root_id.clone()));
+        assert_eq!(node.prev_sibling, None);
+        assert_eq!(node.next_sibling, Some(node_id_2.clone()));
+        assert_eq!(node.first_child, None);
+        assert_eq!(node.last_child, None);
+
+        let node_2 = unsafe { tree.get_node_unchecked(&node_id_2) };
+        assert_eq!(node_2.parent, Some(root_id.clone()));
+        assert_eq!(node_2.prev_sibling, Some(node_id.clone()));
+        assert_eq!(node_2.next_sibling, None);
+        assert_eq!(node_2.first_child, None);
+        assert_eq!(node_2.last_child, None);
     }
 }
