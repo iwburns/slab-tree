@@ -5,9 +5,9 @@ use self::core::CoreTree;
 use self::core::NodeId;
 use self::error::NodeIdError;
 use node::Node;
+use node::Relatives;
 use node::node_mut::NodeMut;
 use node::node_ref::NodeRef;
-use node::Relatives;
 
 //todo: document this
 
@@ -238,9 +238,7 @@ mod tree_tests {
         let root_id = tree.root_id();
         assert!(root_id.is_some());
 
-        let root = unsafe {
-            tree.get_unchecked(root_id.unwrap())
-        };
+        let root = unsafe { tree.get_unchecked(root_id.unwrap()) };
 
         assert_eq!(root.data(), &1);
     }
@@ -252,9 +250,7 @@ mod tree_tests {
         let root_id = tree.root_id().cloned();
         assert!(root_id.is_some());
 
-        let mut root = unsafe {
-            tree.get_unchecked_mut(&root_id.unwrap())
-        };
+        let mut root = unsafe { tree.get_unchecked_mut(&root_id.unwrap()) };
 
         assert_eq!(root.data(), &mut 1);
 
@@ -269,9 +265,7 @@ mod tree_tests {
         let root_id = tree.root_id();
         assert!(root_id.is_some());
 
-        let root = unsafe {
-            tree.get_node_unchecked(root_id.unwrap())
-        };
+        let root = unsafe { tree.get_node_unchecked(root_id.unwrap()) };
 
         assert_eq!(root.data, 1);
     }
@@ -283,9 +277,7 @@ mod tree_tests {
         let root_id = tree.root_id().cloned();
         assert!(root_id.is_some());
 
-        let root = unsafe {
-            tree.get_node_unchecked_mut(&root_id.unwrap())
-        };
+        let root = unsafe { tree.get_node_unchecked_mut(&root_id.unwrap()) };
 
         assert_eq!(root.data, 1);
 

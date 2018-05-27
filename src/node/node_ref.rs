@@ -1,6 +1,6 @@
+use node::Node;
 use tree::Tree;
 use tree::core::NodeId;
-use node::Node;
 
 pub struct NodeRef<'a, T: 'a> {
     pub(crate) node_id: NodeId,
