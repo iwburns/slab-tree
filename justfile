@@ -2,8 +2,14 @@
 @watch:
     cargo watch -x check -x "test --lib"
 
+@watch-docs:
+    cargo watch -x check -x "test --doc"
+
 @check:
     cargo check
+
+@doc:
+    cargo doc
 
 @test-lib:
     cargo test --lib

@@ -9,11 +9,12 @@ use node::node_ref::NodeRef;
 use node::Node;
 use node::Relatives;
 
-//todo: document this
-
+///
+/// A `Tree` "builder" which provides more control over how `Tree`s are created.
+///
 pub struct TreeBuilder<T> {
-    root: Option<T>,
-    capacity: Option<usize>,
+    pub(crate) root: Option<T>,
+    pub(crate) capacity: Option<usize>,
 }
 
 impl<T> Default for TreeBuilder<T> {
@@ -23,6 +24,15 @@ impl<T> Default for TreeBuilder<T> {
 }
 
 impl<T> TreeBuilder<T> {
+    ///
+    /// Returns a new `TreeBuilder` with default settings.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let tree_builder: TreeBuilder<i32> = TreeBuilder::new();
+    /// ```
+    ///
     pub fn new() -> TreeBuilder<T> {
         TreeBuilder {
             root: None,
@@ -30,6 +40,15 @@ impl<T> TreeBuilder<T> {
         }
     }
 
+    ///
+    /// Consumes the `TreeBuilder` and returns a new one with the given root value.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let tree_builder = TreeBuilder::new().with_root(5);
+    /// ```
+    ///
     pub fn with_root(self, root: T) -> TreeBuilder<T> {
         TreeBuilder {
             root: Some(root),
@@ -37,6 +56,15 @@ impl<T> TreeBuilder<T> {
         }
     }
 
+    ///
+    /// Consumes the `TreeBuilder` and returns a new one with the given capacity.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let tree_builder: TreeBuilder<i32> = TreeBuilder::new().with_capacity(20);
+    /// ```
+    ///
     pub fn with_capacity(self, capacity: usize) -> TreeBuilder<T> {
         TreeBuilder {
             root: self.root,
@@ -44,6 +72,22 @@ impl<T> TreeBuilder<T> {
         }
     }
 
+    ///
+    /// Consumes the `TreeBuilder` and builds a `Tree` with the settings the `TreeBuilder` was
+    /// given.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let tree = TreeBuilder::new()
+    ///     .with_root(5)
+    ///     .with_capacity(20)
+    ///     .build();
+    ///
+    /// # assert_eq!(tree.capacity(), 20);
+    /// # assert_eq!(tree.root().unwrap().data(), &5);
+    /// ```
+    ///
     pub fn build(self) -> Tree<T> {
         let mut core_tree = CoreTree::new(self.capacity.unwrap_or(0));
         let root_id = self.root.map(|data| core_tree.insert(data));
@@ -69,6 +113,10 @@ impl<T> Tree<T> {
             root_id: None,
             core_tree: CoreTree::new(0),
         }
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.core_tree.capacity()
     }
 
     pub fn root_id(&self) -> Option<&NodeId> {
@@ -212,6 +260,15 @@ mod tree_builder_tests {
 #[cfg(test)]
 mod tree_tests {
     use super::*;
+
+    #[test]
+    fn capacity() {
+        let tree: Tree<i32> = Tree::new();
+        assert_eq!(tree.capacity(), 0);
+
+        let tree: Tree<i32> = TreeBuilder::new().with_capacity(5).build();
+        assert_eq!(tree.capacity(), 5);
+    }
 
     #[test]
     fn root_id() {
