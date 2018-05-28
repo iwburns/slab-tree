@@ -1,4 +1,5 @@
 use iter::Ancestors;
+use iter::NextSiblings;
 use node::Node;
 use tree::core::NodeId;
 use tree::Tree;
@@ -49,7 +50,12 @@ impl<'a, T> NodeRef<'a, T> {
     }
 
     pub fn ancestors(&self) -> impl Iterator<Item = NodeRef<T>> {
-        Ancestors::new(self.node_id.clone(), self.tree)
+        Ancestors::new(Some(self.node_id.clone()), self.tree)
+    }
+
+    pub fn children(&self) -> impl Iterator<Item = NodeRef<T>> {
+        let first_child_id = self.tree.get_node_relatives(&self.node_id).first_child;
+        NextSiblings::new(first_child_id, self.tree)
     }
 
     fn get_self_as_node(&self) -> &Node<T> {
@@ -129,6 +135,26 @@ mod node_ref_tests {
 
         let bottom_node = tree.get(&node_id).ok().unwrap();
         for (i, node_ref) in bottom_node.ancestors().enumerate() {
+            assert_eq!(node_ref.data(), &values[i]);
+        }
+    }
+
+    #[test]
+    fn children() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        {
+            let mut root_mut = tree.root_mut().unwrap();
+            root_mut.append(2);
+            root_mut.append(3);
+            root_mut.append(4);
+            root_mut.append(5);
+        }
+        let tree = tree;
+
+        let values = [2, 3, 4, 5];
+        let root = tree.root().unwrap();
+
+        for (i, node_ref) in root.children().enumerate() {
             assert_eq!(node_ref.data(), &values[i]);
         }
     }
