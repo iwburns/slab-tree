@@ -3,8 +3,6 @@ pub mod node_ref;
 
 use tree::core::NodeId;
 
-// todo: possibly move relatives into Node
-
 #[derive(Clone)]
 pub(crate) struct Relatives {
     pub(crate) parent: Option<NodeId>,
