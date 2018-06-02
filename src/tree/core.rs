@@ -5,8 +5,6 @@ use std::mem;
 use node::Node;
 use tree::error::*;
 
-// todo: document this
-
 ///
 /// An identifier used to differentiate between Nodes and tie
 /// them to a specific tree.

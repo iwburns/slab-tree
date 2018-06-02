@@ -1,5 +1,8 @@
-pub mod node_mut;
-pub mod node_ref;
+mod node_mut;
+mod node_ref;
+
+pub use self::node_mut::NodeMut;
+pub use self::node_ref::NodeRef;
 
 use tree::core::NodeId;
 

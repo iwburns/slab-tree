@@ -4,132 +4,52 @@ pub mod error;
 use self::core::CoreTree;
 use self::core::NodeId;
 use self::error::NodeIdError;
-use node::node_mut::NodeMut;
-use node::node_ref::NodeRef;
-use node::Node;
-use node::Relatives;
-
-///
-/// A `Tree` "builder" which provides more control over how `Tree`s are created.
-///
-pub struct TreeBuilder<T> {
-    pub(crate) root: Option<T>,
-    pub(crate) capacity: Option<usize>,
-}
-
-impl<T> Default for TreeBuilder<T> {
-    fn default() -> TreeBuilder<T> {
-        TreeBuilder::new()
-    }
-}
-
-impl<T> TreeBuilder<T> {
-    ///
-    /// Returns a new `TreeBuilder` with default settings.
-    ///
-    /// ```
-    /// use slab_tree::tree::TreeBuilder;
-    ///
-    /// let tree_builder: TreeBuilder<i32> = TreeBuilder::new();
-    /// ```
-    ///
-    pub fn new() -> TreeBuilder<T> {
-        TreeBuilder {
-            root: None,
-            capacity: None,
-        }
-    }
-
-    ///
-    /// Consumes the `TreeBuilder` and returns a new one with the given root value.
-    ///
-    /// ```
-    /// use slab_tree::tree::TreeBuilder;
-    ///
-    /// let tree_builder = TreeBuilder::new().with_root(5);
-    /// ```
-    ///
-    pub fn with_root(self, root: T) -> TreeBuilder<T> {
-        TreeBuilder {
-            root: Some(root),
-            capacity: self.capacity,
-        }
-    }
-
-    ///
-    /// Consumes the `TreeBuilder` and returns a new one with the given capacity.
-    ///
-    /// ```
-    /// use slab_tree::tree::TreeBuilder;
-    ///
-    /// let tree_builder: TreeBuilder<i32> = TreeBuilder::new().with_capacity(20);
-    /// ```
-    ///
-    pub fn with_capacity(self, capacity: usize) -> TreeBuilder<T> {
-        TreeBuilder {
-            root: self.root,
-            capacity: Some(capacity),
-        }
-    }
-
-    ///
-    /// Consumes the `TreeBuilder` and builds a `Tree` with the settings the `TreeBuilder` was
-    /// given.
-    ///
-    /// ```
-    /// use slab_tree::tree::TreeBuilder;
-    ///
-    /// let tree = TreeBuilder::new()
-    ///     .with_root(5)
-    ///     .with_capacity(20)
-    ///     .build();
-    ///
-    /// # assert_eq!(tree.capacity(), 20);
-    /// # assert_eq!(tree.root().unwrap().data(), &5);
-    /// ```
-    ///
-    pub fn build(self) -> Tree<T> {
-        let mut core_tree = CoreTree::new(self.capacity.unwrap_or(0));
-        let root_id = self.root.map(|data| core_tree.insert(data));
-
-        Tree { root_id, core_tree }
-    }
-}
+use node::*;
 
 ///
 /// A tree structure containing `Node`s.
 ///
 pub struct Tree<T> {
-    pub(crate) root_id: Option<NodeId>,
+    pub(crate) root_id: NodeId,
     pub(crate) core_tree: CoreTree<T>,
-}
-
-impl<T> Default for Tree<T> {
-    fn default() -> Tree<T> {
-        Tree::new()
-    }
 }
 
 impl<T> Tree<T> {
     ///
-    /// Creates a new `Tree` with default settings (no root and no capacity).
-    ///
-    /// If you would like to specify a root and/or capacity upon creation, consider using
-    /// `TreeBuilder` instead of `Tree::new()`.
+    /// Creates a new `Tree` with the given root value and a capacity of 1.
     ///
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree: Tree<i32> = Tree::new();
+    /// let tree = Tree::new(1);
     ///
-    /// # assert!(tree.root().is_none());
-    /// # assert_eq!(tree.capacity(), 0);
+    /// # assert_eq!(tree.root().data(), &1);
+    /// # assert_eq!(tree.capacity(), 1);
     /// ```
     ///
-    pub fn new() -> Tree<T> {
+    pub fn new(root: T) -> Tree<T> {
+        Tree::new_with_capacity(root, 1)
+    }
+
+    ///
+    /// Creates a new `Tree` with the given root value and capacity.
+    ///
+    /// ```
+    /// use slab_tree::tree::Tree;
+    ///
+    /// let tree = Tree::new_with_capacity(1, 2);
+    ///
+    /// # assert_eq!(tree.root().data(), &1);
+    /// # assert_eq!(tree.capacity(), 2);
+    /// ```
+    ///
+    pub fn new_with_capacity(root: T, capacity: usize) -> Tree<T> {
+        let mut core_tree: CoreTree<T> = CoreTree::new(capacity);
+        let root_id = core_tree.insert(root);
+
         Tree {
-            root_id: None,
-            core_tree: CoreTree::new(0),
+            root_id,
+            core_tree,
         }
     }
 
@@ -139,12 +59,11 @@ impl<T> Tree<T> {
     ///
     /// ```
     /// use slab_tree::tree::Tree;
-    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let tree: Tree<i32> = TreeBuilder::new().with_capacity(5).build();
+    /// let tree = Tree::new_with_capacity(1, 2);
     ///
-    /// assert_eq!(tree.capacity(), 5);
-    /// # assert!(tree.root().is_none());
+    /// # assert_eq!(tree.root().data(), &1);
+    /// assert_eq!(tree.capacity(), 2);
     /// ```
     ///
     pub fn capacity(&self) -> usize {
@@ -152,57 +71,57 @@ impl<T> Tree<T> {
     }
 
     ///
-    /// Returns a reference to the `NodeId` of the root node of the `Tree`.  If there is a root
-    /// `Node` in the tree a `Some`-value is returned, otherwise a `None` is returned.
+    /// Returns a reference to the `NodeId` of the root node of the `Tree`.
     ///
     /// ```
-    /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::tree::Tree;
     ///
-    /// let tree = TreeBuilder::new().with_root(1).build();
+    /// let tree = Tree::new(1);
     ///
-    /// assert!(tree.root_id().is_some());
+    /// let root_id = tree.root_id();
+    ///
+    /// assert_eq!(tree.get(root_id).ok().unwrap().data(), &1);
     /// ```
     ///
-    pub fn root_id(&self) -> Option<&NodeId> {
-        self.root_id.as_ref()
+    pub fn root_id(&self) -> &NodeId {
+        &self.root_id
     }
 
     ///
-    /// Returns a `NodeRef` pointing to the root `Node` of the `Tree`.  If there is a root
-    /// `Node` in the tree a `Some`-value is returned, otherwise a `None` is returned.
+    /// Returns a `NodeRef` pointing to the root `Node` of the `Tree`.
     ///
     /// ```
-    /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::tree::Tree;
     ///
-    /// let tree = TreeBuilder::new().with_root(1).build();
+    /// let tree = Tree::new(1);
     ///
-    /// assert!(tree.root().is_some());
-    /// assert_eq!(tree.root().unwrap().data(), &1);
+    /// let root = tree.root();
+    ///
+    /// assert_eq!(root.data(), &1);
     /// ```
     ///
-    pub fn root(&self) -> Option<NodeRef<T>> {
-        self.root_id.clone().map(|id| self.new_node_ref(id))
+    pub fn root(&self) -> NodeRef<T> {
+        self.new_node_ref(self.root_id.clone())
     }
 
     ///
-    /// Returns a `NodeMut` pointing to the root `Node` of the `Tree`.  If there is a root
-    /// `Node` in the tree a `Some`-value is returned, otherwise a `None` is returned.
+    /// Returns a `NodeMut` pointing to the root `Node` of the `Tree`.
     ///
     /// ```
-    /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = TreeBuilder::new().with_root(1).build();
-    /// let root = tree.root_mut();
+    /// let mut tree = Tree::new(1);
     ///
-    /// assert!(root.is_some());
-    /// let mut root = root.unwrap();
+    /// let mut root = tree.root_mut();
+    /// assert_eq!(root.data(), &mut 1);
     ///
     /// *root.data() = 2;
     /// assert_eq!(root.data(), &mut 2);
     /// ```
     ///
-    pub fn root_mut(&mut self) -> Option<NodeMut<T>> {
-        self.root_id.clone().map(move |id| self.new_node_mut(id))
+    pub fn root_mut(&mut self) -> NodeMut<T> {
+        let node_id = self.root_id.clone();
+        self.new_node_mut(node_id)
     }
 
     ///
@@ -211,10 +130,10 @@ impl<T> Tree<T> {
     /// will be returned; otherwise, an `Ok`-value will be returned.
     ///
     /// ```
-    /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::tree::Tree;
     ///
-    /// let tree = TreeBuilder::new().with_root(1).build();
-    /// let root_id = tree.root_id().unwrap();
+    /// let tree = Tree::new(1);
+    /// let root_id = tree.root_id();
     ///
     /// let root = tree.get(root_id);
     /// assert!(root.is_ok());
@@ -234,12 +153,10 @@ impl<T> Tree<T> {
     /// will be returned; otherwise, an `Ok`-value will be returned.
     ///
     /// ```
-    /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = TreeBuilder::new().with_root(1).build();
-    ///
-    /// // not normally necessary, but for this example to be short, we need this clone
-    /// let root_id = tree.root_id().unwrap().clone();
+    /// let mut tree = Tree::new(1);
+    /// let root_id = tree.root_id().clone();
     ///
     /// let root = tree.get_mut(&root_id);
     /// assert!(root.is_ok());
@@ -338,78 +255,48 @@ impl<T> Tree<T> {
 }
 
 #[cfg(test)]
-mod tree_builder_tests {
-    use super::*;
-
-    #[test]
-    fn with_root_and_capacity() {
-        let tb = TreeBuilder::new().with_root(1).with_capacity(2);
-        assert!(tb.root.is_some());
-        assert_eq!(tb.root.unwrap(), 1);
-        assert_eq!(tb.capacity.unwrap(), 2);
-    }
-
-    #[test]
-    fn build() {
-        let tree = TreeBuilder::new().with_root(1).with_capacity(2).build();
-        assert!(tree.root_id.is_some());
-        assert_eq!(tree.core_tree.capacity(), 2);
-    }
-}
-
-#[cfg(test)]
 mod tree_tests {
     use super::*;
 
     #[test]
     fn capacity() {
-        let tree: Tree<i32> = Tree::new();
-        assert_eq!(tree.capacity(), 0);
+        let tree = Tree::new(1);
+        assert_eq!(tree.capacity(), 1);
 
-        let tree: Tree<i32> = TreeBuilder::new().with_capacity(5).build();
+        let tree = Tree::new_with_capacity(1, 5);
         assert_eq!(tree.capacity(), 5);
     }
 
     #[test]
     fn root_id() {
-        let tree: Tree<i32> = Tree::new();
-        assert!(tree.root_id().is_none());
-
-        let tree = TreeBuilder::new().with_root(1).build();
-        assert!(tree.root_id().is_some());
+        let tree = Tree::new(1);
+        let root_id = tree.root_id();
+        let root = tree.get(root_id).ok().unwrap();
+        assert_eq!(root.data(), &1);
     }
 
     #[test]
     fn root() {
-        let tree: Tree<i32> = Tree::new();
-        assert!(tree.root().is_none());
-
-        let tree = TreeBuilder::new().with_root(1).build();
-        assert!(tree.root().is_some());
-        assert_eq!(tree.root().unwrap().data(), &1);
+        let tree = Tree::new(1);
+        let root = tree.root();
+        assert_eq!(root.data(), &1);
     }
 
     #[test]
     fn root_mut() {
-        let mut tree: Tree<i32> = Tree::new();
-        assert!(tree.root_mut().is_none());
+        let mut tree = Tree::new(1);
+        assert_eq!(tree.root_mut().data(), &mut 1);
 
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        assert!(tree.root().is_some());
-        assert_eq!(tree.root_mut().unwrap().data(), &mut 1);
-
-        *tree.root_mut().unwrap().data() = 2;
-        assert_eq!(tree.root_mut().unwrap().data(), &mut 2);
+        *tree.root_mut().data() = 2;
+        assert_eq!(tree.root_mut().data(), &mut 2);
     }
 
     #[test]
     fn get() {
-        let tree = TreeBuilder::new().with_root(1).build();
+        let tree = Tree::new(1);
 
         let root_id = tree.root_id();
-        assert!(root_id.is_some());
-
-        let root = tree.get(root_id.unwrap());
+        let root = tree.get(root_id);
         assert!(root.is_ok());
 
         let root = root.ok().unwrap();
@@ -418,12 +305,10 @@ mod tree_tests {
 
     #[test]
     fn get_mut() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
+        let mut tree = Tree::new(1);
 
-        let root_id = tree.root_id().cloned();
-        assert!(root_id.is_some());
-
-        let root = tree.get_mut(&root_id.unwrap());
+        let root_id = tree.root_id().clone();
+        let root = tree.get_mut(&root_id);
         assert!(root.is_ok());
 
         let mut root = root.ok().unwrap();
@@ -435,24 +320,20 @@ mod tree_tests {
 
     #[test]
     fn get_node_unchecked() {
-        let tree = TreeBuilder::new().with_root(1).build();
+        let tree = Tree::new(1);
 
         let root_id = tree.root_id();
-        assert!(root_id.is_some());
-
-        let root = unsafe { tree.get_node_unchecked(root_id.unwrap()) };
+        let root = unsafe { tree.get_node_unchecked(root_id) };
 
         assert_eq!(root.data, 1);
     }
 
     #[test]
     fn get_node_unchecked_mut() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
+        let mut tree = Tree::new(1);
 
-        let root_id = tree.root_id().cloned();
-        assert!(root_id.is_some());
-
-        let root = unsafe { tree.get_node_unchecked_mut(&root_id.unwrap()) };
+        let root_id = tree.root_id().clone();
+        let root = unsafe { tree.get_node_unchecked_mut(&root_id) };
 
         assert_eq!(root.data, 1);
 

@@ -1,6 +1,6 @@
-use node::node_ref::NodeRef;
 use tree::core::NodeId;
 use tree::Tree;
+use node::*;
 
 pub struct Ancestors<'a, T: 'a> {
     node_id: Option<NodeId>,

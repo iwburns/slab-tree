@@ -2,6 +2,9 @@ use node::Node;
 use tree::core::NodeId;
 use tree::Tree;
 
+///
+/// A mutable reference to a given `Node`'s data and its relatives.
+///
 pub struct NodeMut<'a, T: 'a> {
     pub(crate) node_id: NodeId,
     pub(crate) tree: &'a mut Tree<T>,
@@ -151,12 +154,12 @@ impl<'a, T: 'a> NodeMut<'a, T> {
 
 #[cfg(test)]
 mod node_mut_tests {
-    use tree::TreeBuilder;
+    use tree::Tree;
 
     #[test]
     fn node_id() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert_eq!(&root_id, root_mut.node_id());
@@ -164,8 +167,8 @@ mod node_mut_tests {
 
     #[test]
     fn data() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert_eq!(root_mut.data(), &mut 1);
@@ -176,48 +179,48 @@ mod node_mut_tests {
 
     #[test]
     fn parent() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert!(root_mut.parent().is_none());
     }
 
     #[test]
     fn prev_sibling() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert!(root_mut.prev_sibling().is_none());
     }
 
     #[test]
     fn next_sibling() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert!(root_mut.next_sibling().is_none());
     }
 
     #[test]
     fn first_child() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert!(root_mut.first_child().is_none());
     }
 
     #[test]
     fn last_child() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
         let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
         assert!(root_mut.last_child().is_none());
     }
 
     #[test]
     fn append_no_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         {
@@ -245,8 +248,8 @@ mod node_mut_tests {
 
     #[test]
     fn append_single_child_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         let new_id_2;
@@ -286,8 +289,8 @@ mod node_mut_tests {
 
     #[test]
     fn append_two_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         let new_id_2;
@@ -346,8 +349,8 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_no_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         {
@@ -375,8 +378,8 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_single_child_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         let new_id_2;
@@ -416,8 +419,8 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_two_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let new_id;
         let new_id_2;
@@ -476,8 +479,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_no_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
@@ -492,8 +495,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_single_child_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
@@ -509,8 +512,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_two_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let node_id;
         {
@@ -536,8 +539,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_three_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let node_id;
         let node_id_2;
@@ -572,8 +575,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_no_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
@@ -588,8 +591,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_single_child_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         {
             let mut root_mut = tree.get_mut(&root_id).ok().unwrap();
@@ -605,8 +608,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_two_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let node_id;
         {
@@ -632,8 +635,8 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_three_children_present() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-        let root_id = tree.root_id().cloned().unwrap();
+        let mut tree = Tree::new(1);
+        let root_id = tree.root_id().clone();
 
         let node_id;
         let node_id_2;
