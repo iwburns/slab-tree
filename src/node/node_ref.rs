@@ -18,35 +18,35 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .parent
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked(&parent_id) })
+            .map(|id| self.tree.new_node_ref(id))
     }
 
     pub fn prev_sibling(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
             .prev_sibling
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked(&parent_id) })
+            .map(|id| self.tree.new_node_ref(id))
     }
 
     pub fn next_sibling(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
             .next_sibling
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked(&parent_id) })
+            .map(|id| self.tree.new_node_ref(id))
     }
 
     pub fn first_child(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
             .first_child
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked(&parent_id) })
+            .map(|id| self.tree.new_node_ref(id))
     }
 
     pub fn last_child(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
             .last_child
             .clone()
-            .map(move |parent_id| unsafe { self.tree.get_unchecked(&parent_id) })
+            .map(|id| self.tree.new_node_ref(id))
     }
 
     pub fn ancestors(&self) -> impl Iterator<Item = NodeRef<T>> {

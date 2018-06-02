@@ -96,6 +96,9 @@ impl<T> TreeBuilder<T> {
     }
 }
 
+///
+/// A tree structure containing `Node`s.
+///
 pub struct Tree<T> {
     pub(crate) root_id: Option<NodeId>,
     pub(crate) core_tree: CoreTree<T>,
@@ -141,14 +144,6 @@ impl<T> Tree<T> {
         Ok(self.new_node_mut(node_id.clone()))
     }
 
-    pub unsafe fn get_unchecked(&self, node_id: &NodeId) -> NodeRef<T> {
-        self.new_node_ref(node_id.clone())
-    }
-
-    pub unsafe fn get_unchecked_mut(&mut self, node_id: &NodeId) -> NodeMut<T> {
-        self.new_node_mut(node_id.clone())
-    }
-
     pub(crate) unsafe fn get_node_unchecked(&self, node_id: &NodeId) -> &Node<T> {
         self.core_tree.get_unchecked(node_id)
     }
@@ -158,17 +153,11 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
-        NodeRef {
-            node_id,
-            tree: self,
-        }
+        NodeRef { node_id, tree: self }
     }
 
     pub(crate) fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
-        NodeMut {
-            node_id,
-            tree: self,
-        }
+        NodeMut { node_id, tree: self }
     }
 
     pub(crate) fn set_prev_siblings_next_sibling(
@@ -327,33 +316,6 @@ mod tree_tests {
         assert!(root.is_ok());
 
         let mut root = root.ok().unwrap();
-        assert_eq!(root.data(), &mut 1);
-
-        *root.data() = 2;
-        assert_eq!(root.data(), &mut 2);
-    }
-
-    #[test]
-    fn get_unchecked() {
-        let tree = TreeBuilder::new().with_root(1).build();
-
-        let root_id = tree.root_id();
-        assert!(root_id.is_some());
-
-        let root = unsafe { tree.get_unchecked(root_id.unwrap()) };
-
-        assert_eq!(root.data(), &1);
-    }
-
-    #[test]
-    fn get_unchecked_mut() {
-        let mut tree = TreeBuilder::new().with_root(1).build();
-
-        let root_id = tree.root_id().cloned();
-        assert!(root_id.is_some());
-
-        let mut root = unsafe { tree.get_unchecked_mut(&root_id.unwrap()) };
-
         assert_eq!(root.data(), &mut 1);
 
         *root.data() = 2;
