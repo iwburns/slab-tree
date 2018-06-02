@@ -20,35 +20,35 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .parent
             .clone()
-            .map( move|id| self.tree.new_node_mut(id))
+            .map(move |id| self.tree.new_node_mut(id))
     }
 
     pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .prev_sibling
             .clone()
-            .map( move|id| self.tree.new_node_mut(id))
+            .map(move |id| self.tree.new_node_mut(id))
     }
 
     pub fn next_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .next_sibling
             .clone()
-            .map( move|id| self.tree.new_node_mut(id))
+            .map(move |id| self.tree.new_node_mut(id))
     }
 
     pub fn first_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .first_child
             .clone()
-            .map( move|id| self.tree.new_node_mut(id))
+            .map(move |id| self.tree.new_node_mut(id))
     }
 
     pub fn last_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .last_child
             .clone()
-            .map( move|id| self.tree.new_node_mut(id))
+            .map(move |id| self.tree.new_node_mut(id))
     }
 
     pub fn append(&mut self, data: T) -> NodeMut<T> {
