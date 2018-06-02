@@ -299,47 +299,41 @@ impl<T> Tree<T> {
 
     pub(crate) fn set_parent(&mut self, node_id: &NodeId, parent_id: Option<NodeId>) {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.parent = parent_id;
+        node.relatives.parent = parent_id;
     }
 
     pub(crate) fn set_prev_sibling(&mut self, node_id: &NodeId, prev_sibling: Option<NodeId>) {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.prev_sibling = prev_sibling;
+        node.relatives.prev_sibling = prev_sibling;
     }
 
     pub(crate) fn set_next_sibling(&mut self, node_id: &NodeId, next_sibling: Option<NodeId>) {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.next_sibling = next_sibling;
+        node.relatives.next_sibling = next_sibling;
     }
 
     pub(crate) fn set_first_child(&mut self, node_id: &NodeId, first_child: Option<NodeId>) {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.first_child = first_child;
+        node.relatives.first_child = first_child;
     }
 
     pub(crate) fn set_last_child(&mut self, node_id: &NodeId, last_child: Option<NodeId>) {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.last_child = last_child;
+        node.relatives.last_child = last_child;
     }
 
     pub(crate) fn get_node_prev_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.prev_sibling.clone()
+        node.relatives.prev_sibling.clone()
     }
     pub(crate) fn get_node_next_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
         let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.next_sibling.clone()
+        node.relatives.next_sibling.clone()
     }
 
     pub(crate) fn get_node_relatives(&self, node_id: &NodeId) -> Relatives {
         let node = unsafe { self.get_node_unchecked(node_id) };
-        Relatives {
-            parent: node.parent.clone(),
-            prev_sibling: node.prev_sibling.clone(),
-            next_sibling: node.next_sibling.clone(),
-            first_child: node.first_child.clone(),
-            last_child: node.last_child.clone(),
-        }
+        node.relatives.clone()
     }
 }
 

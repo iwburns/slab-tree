@@ -5,6 +5,7 @@ use tree::core::NodeId;
 
 // todo: possibly move relatives into Node
 
+#[derive(Clone)]
 pub(crate) struct Relatives {
     pub(crate) parent: Option<NodeId>,
     pub(crate) prev_sibling: Option<NodeId>,
@@ -15,22 +16,20 @@ pub(crate) struct Relatives {
 
 pub(crate) struct Node<T> {
     pub(crate) data: T,
-    pub(crate) parent: Option<NodeId>,
-    pub(crate) prev_sibling: Option<NodeId>,
-    pub(crate) next_sibling: Option<NodeId>,
-    pub(crate) first_child: Option<NodeId>,
-    pub(crate) last_child: Option<NodeId>,
+    pub(crate) relatives: Relatives,
 }
 
 impl<T> Node<T> {
     pub(crate) fn new(data: T) -> Node<T> {
         Node {
             data,
-            parent: None,
-            prev_sibling: None,
-            next_sibling: None,
-            first_child: None,
-            last_child: None,
+            relatives: Relatives {
+                parent: None,
+                prev_sibling: None,
+                next_sibling: None,
+                first_child: None,
+                last_child: None,
+            }
         }
     }
 }

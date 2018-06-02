@@ -16,6 +16,7 @@ impl<'a, T> NodeRef<'a, T> {
 
     pub fn parent(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
+            .relatives
             .parent
             .clone()
             .map(|id| self.tree.new_node_ref(id))
@@ -23,6 +24,7 @@ impl<'a, T> NodeRef<'a, T> {
 
     pub fn prev_sibling(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
+            .relatives
             .prev_sibling
             .clone()
             .map(|id| self.tree.new_node_ref(id))
@@ -30,6 +32,7 @@ impl<'a, T> NodeRef<'a, T> {
 
     pub fn next_sibling(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
+            .relatives
             .next_sibling
             .clone()
             .map(|id| self.tree.new_node_ref(id))
@@ -37,6 +40,7 @@ impl<'a, T> NodeRef<'a, T> {
 
     pub fn first_child(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
+            .relatives
             .first_child
             .clone()
             .map(|id| self.tree.new_node_ref(id))
@@ -44,6 +48,7 @@ impl<'a, T> NodeRef<'a, T> {
 
     pub fn last_child(&self) -> Option<NodeRef<T>> {
         self.get_self_as_node()
+            .relatives
             .last_child
             .clone()
             .map(|id| self.tree.new_node_ref(id))
