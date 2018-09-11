@@ -169,6 +169,14 @@ impl<T> Tree<T> {
         Ok(self.new_node_mut(node_id.clone()))
     }
 
+    pub(crate) fn get_node(&self, node_id: &NodeId) -> Result<&Node<T>, NodeIdError> {
+        self.core_tree.get(node_id)
+    }
+
+    pub(crate) fn get_node_mut(&mut self, node_id: &NodeId) -> Result<&mut Node<T>, NodeIdError> {
+        self.core_tree.get_mut(node_id)
+    }
+
     pub(crate) unsafe fn get_node_unchecked(&self, node_id: &NodeId) -> &Node<T> {
         self.core_tree.get_unchecked(node_id)
     }
@@ -313,6 +321,33 @@ mod tree_tests {
 
         *root.data() = 2;
         assert_eq!(root.data(), &mut 2);
+    }
+
+    #[test]
+    fn get_node() {
+        let mut tree = Tree::new(1);
+
+        let root_id = tree.root_id().clone();
+        let root = tree.get_node(&root_id);
+        assert!(root.is_ok());
+
+        let root = root.ok().unwrap();
+        assert_eq!(root.data, 1);
+    }
+
+    #[test]
+    fn get_node_mut() {
+        let mut tree = Tree::new(1);
+
+        let root_id = tree.root_id().clone();
+        let root = tree.get_node_mut(&root_id);
+        assert!(root.is_ok());
+
+        let mut root = root.ok().unwrap();
+        assert_eq!(root.data, 1);
+
+        root.data = 2;
+        assert_eq!(root.data, 2);
     }
 
     #[test]
