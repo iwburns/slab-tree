@@ -177,14 +177,6 @@ impl<T> Tree<T> {
         self.core_tree.get_mut(node_id)
     }
 
-    pub(crate) unsafe fn get_node_unchecked(&self, node_id: &NodeId) -> &Node<T> {
-        self.core_tree.get_unchecked(node_id)
-    }
-
-    pub(crate) unsafe fn get_node_unchecked_mut(&mut self, node_id: &NodeId) -> &mut Node<T> {
-        self.core_tree.get_unchecked_mut(node_id)
-    }
-
     pub(crate) fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
         NodeRef {
             node_id,
@@ -220,42 +212,67 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_parent(&mut self, node_id: &NodeId, parent_id: Option<NodeId>) {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.parent = parent_id;
+        if let Ok(node) = self.get_node_mut(node_id) {
+            node.relatives.parent = parent_id;
+        } else {
+            unreachable!()
+        }
     }
 
     pub(crate) fn set_prev_sibling(&mut self, node_id: &NodeId, prev_sibling: Option<NodeId>) {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.prev_sibling = prev_sibling;
+        if let Ok(node) = self.get_node_mut(node_id) {
+            node.relatives.prev_sibling = prev_sibling;
+        } else {
+            unreachable!()
+        }
     }
 
     pub(crate) fn set_next_sibling(&mut self, node_id: &NodeId, next_sibling: Option<NodeId>) {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.next_sibling = next_sibling;
+        if let Ok(node) = self.get_node_mut(node_id) {
+            node.relatives.next_sibling = next_sibling;
+        } else {
+            unreachable!()
+        }
     }
 
     pub(crate) fn set_first_child(&mut self, node_id: &NodeId, first_child: Option<NodeId>) {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.first_child = first_child;
+        if let Ok(node) = self.get_node_mut(node_id) {
+            node.relatives.first_child = first_child;
+        } else {
+            unreachable!()
+        }
     }
 
     pub(crate) fn set_last_child(&mut self, node_id: &NodeId, last_child: Option<NodeId>) {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.last_child = last_child;
+        if let Ok(node) = self.get_node_mut(node_id) {
+            node.relatives.last_child = last_child;
+        } else {
+            unreachable!()
+        }
     }
 
-    pub(crate) fn get_node_prev_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.prev_sibling.clone()
+    pub(crate) fn get_node_prev_sibling_id(&self, node_id: &NodeId) -> Option<NodeId> {
+        if let Ok(node) = self.get_node(node_id) {
+            node.relatives.prev_sibling.clone()
+        } else {
+            unreachable!()
+        }
     }
-    pub(crate) fn get_node_next_sibling_id(&mut self, node_id: &NodeId) -> Option<NodeId> {
-        let node = unsafe { self.get_node_unchecked_mut(node_id) };
-        node.relatives.next_sibling.clone()
+
+    pub(crate) fn get_node_next_sibling_id(&self, node_id: &NodeId) -> Option<NodeId> {
+        if let Ok(node) = self.get_node(node_id) {
+            node.relatives.next_sibling.clone()
+        } else {
+            unreachable!()
+        }
     }
 
     pub(crate) fn get_node_relatives(&self, node_id: &NodeId) -> Relatives {
-        let node = unsafe { self.get_node_unchecked(node_id) };
-        node.relatives.clone()
+        if let Ok(node) = self.get_node(node_id) {
+            node.relatives.clone()
+        } else {
+            unreachable!()
+        }
     }
 }
 
@@ -344,29 +361,6 @@ mod tree_tests {
         assert!(root.is_ok());
 
         let root = root.ok().unwrap();
-        assert_eq!(root.data, 1);
-
-        root.data = 2;
-        assert_eq!(root.data, 2);
-    }
-
-    #[test]
-    fn get_node_unchecked() {
-        let tree = Tree::new(1);
-
-        let root_id = tree.root_id();
-        let root = unsafe { tree.get_node_unchecked(root_id) };
-
-        assert_eq!(root.data, 1);
-    }
-
-    #[test]
-    fn get_node_unchecked_mut() {
-        let mut tree = Tree::new(1);
-
-        let root_id = tree.root_id().clone();
-        let root = unsafe { tree.get_node_unchecked_mut(&root_id) };
-
         assert_eq!(root.data, 1);
 
         root.data = 2;

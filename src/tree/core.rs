@@ -84,14 +84,6 @@ impl<T> CoreTree<T> {
             .ok_or(NodeIdError::BadNodeId)
     }
 
-    pub(crate) unsafe fn get_unchecked(&self, node_id: &NodeId) -> &Node<T> {
-        self.slab.get_unchecked(node_id.index)
-    }
-
-    pub(crate) unsafe fn get_unchecked_mut(&mut self, node_id: &NodeId) -> &mut Node<T> {
-        self.slab.get_unchecked_mut(node_id.index)
-    }
-
     fn new_node_id(&self, index: usize) -> NodeId {
         NodeId {
             tree_id: self.id,
@@ -236,35 +228,5 @@ mod tests {
 
         assert_eq!(tree.get_mut(&id).unwrap().data, 1);
         assert_eq!(tree.get_mut(&id2).unwrap().data, 3);
-    }
-
-    #[test]
-    fn get_unchecked() {
-        let mut tree = CoreTree::new(0);
-
-        let id = tree.insert(1);
-        let id2 = tree.insert(3);
-
-        unsafe {
-            assert_eq!(tree.get_unchecked(&id).data, 1);
-        }
-        unsafe {
-            assert_eq!(tree.get_unchecked(&id2).data, 3);
-        }
-    }
-
-    #[test]
-    fn get_unchecked_mut() {
-        let mut tree = CoreTree::new(0);
-
-        let id = tree.insert(1);
-        let id2 = tree.insert(3);
-
-        unsafe {
-            assert_eq!(tree.get_unchecked_mut(&id).data, 1);
-        }
-        unsafe {
-            assert_eq!(tree.get_unchecked_mut(&id2).data, 3);
-        }
     }
 }
