@@ -27,4 +27,4 @@
     rustup install nightly
     rustup update nightly
     rustup component add rustfmt-preview --toolchain nightly
-    cargo +nightly install --force clippy
+    rustup component add clippy-preview --toolchain=nightly

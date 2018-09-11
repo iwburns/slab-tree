@@ -47,10 +47,7 @@ impl<T> Tree<T> {
         let mut core_tree: CoreTree<T> = CoreTree::new(capacity);
         let root_id = core_tree.insert(root);
 
-        Tree {
-            root_id,
-            core_tree,
-        }
+        Tree { root_id, core_tree }
     }
 
     ///

@@ -30,7 +30,7 @@ impl<T> Node<T> {
                 next_sibling: None,
                 first_child: None,
                 last_child: None,
-            }
+            },
         }
     }
 }
