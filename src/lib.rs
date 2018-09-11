@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 extern crate slab;
 extern crate snowflake;
 
