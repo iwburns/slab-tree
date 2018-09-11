@@ -325,7 +325,7 @@ mod tree_tests {
 
     #[test]
     fn get_node() {
-        let mut tree = Tree::new(1);
+        let tree = Tree::new(1);
 
         let root_id = tree.root_id().clone();
         let root = tree.get_node(&root_id);
@@ -343,7 +343,7 @@ mod tree_tests {
         let root = tree.get_node_mut(&root_id);
         assert!(root.is_ok());
 
-        let mut root = root.ok().unwrap();
+        let root = root.ok().unwrap();
         assert_eq!(root.data, 1);
 
         root.data = 2;
