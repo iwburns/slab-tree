@@ -26,7 +26,11 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     ///
     pub fn data(&self) -> &T {
-        unsafe { &self.tree.get_node_unchecked(&self.node_id).data }
+        if let Ok(node) = self.tree.get_node(&self.node_id) {
+            &node.data
+        } else {
+            unreachable!()
+        }
     }
 
     ///
@@ -190,7 +194,11 @@ impl<'a, T> NodeRef<'a, T> {
     }
 
     fn get_self_as_node(&self) -> &Node<T> {
-        unsafe { self.tree.get_node_unchecked(&self.node_id) }
+        if let Ok(node) = self.tree.get_node(&self.node_id) {
+            &node
+        } else {
+            unreachable!()
+        }
     }
 }
 
