@@ -1,3 +1,4 @@
+use std::mem;
 
 #[derive(Copy, Clone)]
 pub struct Index {
@@ -5,9 +6,10 @@ pub struct Index {
     generation: u64,
 }
 
+#[derive(Debug)]
 enum Slot<T> {
     Empty { next_free_slot: Option<usize> },
-    Filled { data: T, generation: u64 },
+    Filled { item: T, generation: u64 },
 }
 
 pub struct Slab<T> {
@@ -18,23 +20,103 @@ pub struct Slab<T> {
 
 impl<T> Slab<T> {
     pub fn new(capacity: usize) -> Slab<T> {
-        unimplemented!();
+        Slab {
+            data: Vec::with_capacity(capacity),
+            first_free_slot: None,
+            generation: 0,
+        }
     }
 
     pub fn insert(&mut self, item: T) -> Index {
-        unimplemented!()
+        let new_slot = Slot::Filled {
+            item,
+            generation: self.generation,
+        };
+
+        if let Some(index) = self.first_free_slot {
+            let empty_slot = mem::replace(
+                &mut self.data[index],
+                new_slot
+            );
+
+            match empty_slot {
+                Slot::Empty { next_free_slot } => {
+                    self.first_free_slot = next_free_slot;
+                }
+                _ => unreachable!(),
+            };
+
+            Index {
+                index,
+                generation: self.generation,
+            }
+        } else {
+            self.data.push(new_slot);
+            Index {
+                index: self.data.len() - 1,
+                generation: self.generation,
+            }
+        }
     }
 
     pub fn remove(&mut self, index: Index) -> Option<T> {
-        unimplemented!()
+        if index.index >= self.data.len() {
+            return None;
+        }
+
+        let slot = mem::replace(
+            &mut self.data[index.index],
+            Slot::Empty {
+                next_free_slot: self.first_free_slot
+            },
+        );
+
+        match slot {
+            Slot::Filled { item, generation } => {
+                if index.generation == generation {
+                    self.generation += 1;
+                    self.first_free_slot = Some(index.index);
+                    Some(item)
+                } else {
+                    self.data[index.index] = Slot::Filled { item, generation };
+                    None
+                }
+            },
+            s @ _ =>  {
+                self.data[index.index] = s;
+                None
+            }
+        }
     }
 
     pub fn get(&self, index: Index) -> Option<&T> {
-        unimplemented!()
+        self.data.get(index.index)
+            .and_then(|slot| {
+                match slot {
+                    Slot::Filled { item, generation } => {
+                        if index.generation == *generation {
+                            return Some(item);
+                        }
+                        None
+                    },
+                    _ => None,
+                }
+            })
     }
 
     pub fn get_mut(&mut self, index: Index) -> Option<&mut T> {
-        unimplemented!()
+        self.data.get_mut(index.index)
+            .and_then(|slot| {
+                match slot {
+                    Slot::Filled { item, generation } => {
+                        if index.generation == *generation {
+                            return Some(item);
+                        }
+                        None
+                    },
+                    _ => None,
+                }
+            })
     }
 }
 
@@ -107,18 +189,18 @@ mod tests {
         assert_eq!(slab.generation, 1);
 
         {
-            let six_slot = slab.data.get(1);
+            let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
             let six_slot = six_slot.unwrap();
             match six_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &6);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &6);
                     assert_eq!(generation, &0);
-                },
+                }
             }
 
             let seven_slot = slab.data.get(1);
@@ -128,24 +210,24 @@ mod tests {
             match seven_slot {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
 
-            let eight_slot = slab.data.get(1);
+            let eight_slot = slab.data.get(2);
             assert!(eight_slot.is_some());
 
             let eight_slot = eight_slot.unwrap();
             match eight_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &8);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &8);
                     assert_eq!(generation, &0);
-                },
+                }
             }
         }
 
@@ -158,18 +240,18 @@ mod tests {
         assert_eq!(slab.generation, 2);
 
         {
-            let six_slot = slab.data.get(1);
+            let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
             let six_slot = six_slot.unwrap();
             match six_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &6);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &6);
                     assert_eq!(generation, &0);
-                },
+                }
             }
 
             let seven_slot = slab.data.get(1);
@@ -179,10 +261,10 @@ mod tests {
             match seven_slot {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
 
             let eight_slot = slab.data.get(2);
@@ -193,10 +275,10 @@ mod tests {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_some());
                     assert_eq!(next_free_slot.unwrap(), 1);
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
         }
 
@@ -206,18 +288,18 @@ mod tests {
         assert_eq!(nine.generation, 2);
 
         {
-            let six_slot = slab.data.get(1);
+            let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
             let six_slot = six_slot.unwrap();
             match six_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &6);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &6);
                     assert_eq!(generation, &0);
-                },
+                }
             }
 
             let seven_slot = slab.data.get(1);
@@ -227,10 +309,10 @@ mod tests {
             match seven_slot {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
 
             let nine_slot = slab.data.get(2);
@@ -238,13 +320,13 @@ mod tests {
 
             let nine_slot = nine_slot.unwrap();
             match nine_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &9);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &9);
                     assert_eq!(generation, &2);
-                },
+                }
             }
         }
 
@@ -257,7 +339,7 @@ mod tests {
         assert_eq!(slab.generation, 3);
 
         {
-            let six_slot = slab.data.get(1);
+            let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
             let six_slot = six_slot.unwrap();
@@ -265,10 +347,10 @@ mod tests {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_some());
                     assert_eq!(next_free_slot.unwrap(), 1);
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
 
             let seven_slot = slab.data.get(1);
@@ -278,10 +360,10 @@ mod tests {
             match seven_slot {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
-                },
+                }
                 Slot::Filled { .. } => {
                     panic!("Slot should be empty after call to remove.");
-                },
+                }
             }
 
             let nine_slot = slab.data.get(2);
@@ -289,13 +371,13 @@ mod tests {
 
             let nine_slot = nine_slot.unwrap();
             match nine_slot {
-                Slot::Empty { next_free_slot } => {
+                Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
-                },
-                Slot::Filled { data, generation } => {
-                    assert_eq!(data, &9);
+                }
+                Slot::Filled { item, generation } => {
+                    assert_eq!(item, &9);
                     assert_eq!(generation, &2);
-                },
+                }
             }
         }
     }
@@ -328,10 +410,15 @@ mod tests {
         let eight = slab.insert(8);
         assert_eq!(eight.index, 0);
         assert_eq!(eight.generation, 1);
-
-        let eight_ref = slab.get(eight);
-        assert!(eight_ref.is_some());
-        assert_eq!(eight_ref.unwrap(), &8);
+        {
+            let eight_ref = slab.get(eight);
+            assert!(eight_ref.is_some());
+            assert_eq!(eight_ref.unwrap(), &8);
+        }
+        {
+            let six_ref = slab.get(six);
+            assert!(six_ref.is_none());
+        }
     }
 
     #[test]
@@ -368,8 +455,14 @@ mod tests {
         assert_eq!(eight.index, 0);
         assert_eq!(eight.generation, 1);
 
-        let eight_ref = slab.get_mut(eight);
-        assert!(eight_ref.is_some());
-        assert_eq!(eight_ref.unwrap(), &mut 8);
+        {
+            let eight_ref = slab.get_mut(eight);
+            assert!(eight_ref.is_some());
+            assert_eq!(eight_ref.unwrap(), &mut 8);
+        }
+        {
+            let six_ref = slab.get_mut(six);
+            assert!(six_ref.is_none());
+        }
     }
 }
