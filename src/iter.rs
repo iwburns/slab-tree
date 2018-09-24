@@ -19,7 +19,7 @@ impl<'a, T> Iterator for Ancestors<'a, T> {
     fn next(&mut self) -> Option<NodeRef<'a, T>> {
         self.node_id
             .take()
-            .and_then(|node_id| self.tree.get_node_relatives(&node_id).parent)
+            .and_then(|node_id| self.tree.get_node_relatives(node_id).parent)
             .map(|id| {
                 self.node_id = Some(id.clone());
                 self.tree.new_node_ref(id)
@@ -43,7 +43,7 @@ impl<'a, T> Iterator for NextSiblings<'a, T> {
 
     fn next(&mut self) -> Option<NodeRef<'a, T>> {
         self.node_id.take().map(|node_id| {
-            self.node_id = self.tree.get_node_relatives(&node_id).next_sibling;
+            self.node_id = self.tree.get_node_relatives(node_id).next_sibling;
             self.tree.new_node_ref(node_id)
         })
     }

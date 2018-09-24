@@ -26,7 +26,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     ///
     pub fn data(&self) -> &T {
-        if let Ok(node) = self.tree.get_node(&self.node_id) {
+        if let Ok(node) = self.tree.get_node(self.node_id) {
             &node.data
         } else {
             unreachable!()
@@ -154,7 +154,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .node_id()
     ///     .clone();
     ///
-    /// let leaf = tree.get(&leaf_id).ok().unwrap();
+    /// let leaf = tree.get(leaf_id).ok().unwrap();
     ///
     /// let values = [3, 2, 1];
     /// for (i, ancestor) in leaf.ancestors().enumerate() {
@@ -189,12 +189,12 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     ///
     pub fn children(&self) -> impl Iterator<Item = NodeRef<T>> {
-        let first_child_id = self.tree.get_node_relatives(&self.node_id).first_child;
+        let first_child_id = self.tree.get_node_relatives(self.node_id).first_child;
         NextSiblings::new(first_child_id, self.tree)
     }
 
     fn get_self_as_node(&self) -> &Node<T> {
-        if let Ok(node) = self.tree.get_node(&self.node_id) {
+        if let Ok(node) = self.tree.get_node(self.node_id) {
             &node
         } else {
             unreachable!()
@@ -210,7 +210,7 @@ mod node_ref_tests {
     fn data() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert_eq!(root_ref.data(), &1);
     }
 
@@ -218,7 +218,7 @@ mod node_ref_tests {
     fn parent() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.parent().is_none());
     }
 
@@ -226,7 +226,7 @@ mod node_ref_tests {
     fn prev_sibling() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.prev_sibling().is_none());
     }
 
@@ -234,7 +234,7 @@ mod node_ref_tests {
     fn next_sibling() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.next_sibling().is_none());
     }
 
@@ -242,7 +242,7 @@ mod node_ref_tests {
     fn first_child() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.first_child().is_none());
     }
 
@@ -250,7 +250,7 @@ mod node_ref_tests {
     fn last_child() {
         let tree = Tree::new(1);
         let root_id = tree.root_id().clone();
-        let root_ref = tree.get(&root_id).ok().unwrap();
+        let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.last_child().is_none());
     }
 
@@ -272,7 +272,7 @@ mod node_ref_tests {
 
         let values = [4, 3, 2, 1];
 
-        let bottom_node = tree.get(&node_id).ok().unwrap();
+        let bottom_node = tree.get(node_id).ok().unwrap();
         for (i, node_ref) in bottom_node.ancestors().enumerate() {
             assert_eq!(node_ref.data(), &values[i]);
         }

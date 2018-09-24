@@ -49,12 +49,12 @@ impl<T> CoreTree<T> {
         node.data
     }
 
-    pub(crate) fn get(&self, node_id: &NodeId) -> Result<&Node<T>, NodeIdError> {
+    pub(crate) fn get(&self, node_id: NodeId) -> Result<&Node<T>, NodeIdError> {
         self.validate_node_id(node_id)?;
         self.slab.get(node_id.index).ok_or(NodeIdError::BadNodeId)
     }
 
-    pub(crate) fn get_mut(&mut self, node_id: &NodeId) -> Result<&mut Node<T>, NodeIdError> {
+    pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Result<&mut Node<T>, NodeIdError> {
         self.validate_node_id(node_id)?;
         self.slab
             .get_mut(node_id.index)
@@ -68,7 +68,7 @@ impl<T> CoreTree<T> {
         }
     }
 
-    fn validate_node_id(&self, node_id: &NodeId) -> Result<(), NodeIdError> {
+    fn validate_node_id(&self, node_id: NodeId) -> Result<(), NodeIdError> {
         if node_id.tree_id != self.id {
             return Err(NodeIdError::WrongTree);
         }
@@ -94,8 +94,8 @@ mod tests {
         let id = tree.insert(1);
         let id2 = tree.insert(3);
 
-        assert_eq!(tree.get(&id).unwrap().data, 1);
-        assert_eq!(tree.get(&id2).unwrap().data, 3);
+        assert_eq!(tree.get(id).unwrap().data, 1);
+        assert_eq!(tree.get(id2).unwrap().data, 3);
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod tests {
         let mut tree = CoreTree::new(0);
 
         let id = tree.insert(1);
-        assert_eq!(tree.get(&id).unwrap().data, 1);
+        assert_eq!(tree.get(id).unwrap().data, 1);
 
         let one = tree.remove(id);
         assert_eq!(one, 1);
@@ -116,8 +116,8 @@ mod tests {
         let id = tree.insert(1);
         let id2 = tree.insert(3);
 
-        assert_eq!(tree.get(&id).unwrap().data, 1);
-        assert_eq!(tree.get(&id2).unwrap().data, 3);
+        assert_eq!(tree.get(id).unwrap().data, 1);
+        assert_eq!(tree.get(id2).unwrap().data, 3);
     }
 
     #[test]
@@ -127,7 +127,7 @@ mod tests {
         let id = tree.insert(1);
         let id2 = tree.insert(3);
 
-        assert_eq!(tree.get_mut(&id).unwrap().data, 1);
-        assert_eq!(tree.get_mut(&id2).unwrap().data, 3);
+        assert_eq!(tree.get_mut(id).unwrap().data, 1);
+        assert_eq!(tree.get_mut(id2).unwrap().data, 3);
     }
 }
