@@ -1,18 +1,18 @@
-use slab::Slab;
 use snowflake::ProcessUniqueId;
 use std::mem;
 
 use node::Node;
 use tree::error::*;
+use slab;
 
 ///
 /// An identifier used to differentiate between Nodes and tie
 /// them to a specific tree.
 ///
-#[derive(Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 pub struct NodeId {
     tree_id: ProcessUniqueId,
-    index: usize,
+    index: slab::Index,
 }
 
 ///
@@ -22,14 +22,14 @@ pub struct NodeId {
 ///
 pub(crate) struct CoreTree<T> {
     id: ProcessUniqueId,
-    slab: Slab<Node<T>>,
+    slab: slab::Slab<Node<T>>,
 }
 
 impl<T> CoreTree<T> {
     pub(crate) fn new(capacity: usize) -> CoreTree<T> {
         CoreTree {
             id: ProcessUniqueId::new(),
-            slab: Slab::with_capacity(capacity),
+            slab: slab::Slab::new(capacity),
         }
     }
 
@@ -37,37 +37,14 @@ impl<T> CoreTree<T> {
         self.slab.capacity()
     }
 
-    pub(crate) fn reserve(&mut self, additional: usize) {
-        self.slab.reserve(additional);
-    }
-
-    pub(crate) fn reserve_exact(&mut self, additional: usize) {
-        self.slab.reserve_exact(additional);
-    }
-
-    pub(crate) fn shrink_to_fit(&mut self) {
-        self.slab.shrink_to_fit();
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.slab.clear();
-    }
-
-    pub(crate) fn len(&self) -> usize {
-        self.slab.len()
-    }
-
-    pub(crate) fn is_empty(&self) -> bool {
-        self.slab.is_empty()
-    }
-
     pub(crate) fn insert(&mut self, data: T) -> NodeId {
         let key = self.slab.insert(Node::new(data));
         self.new_node_id(key)
     }
 
+    // todo: return an Option<T> here instead
     pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
-        let node = self.slab.remove(node_id.index);
+        let node = self.slab.remove(node_id.index).expect("Invalid NodeId");
         mem::drop(node_id);
         node.data
     }
@@ -84,7 +61,7 @@ impl<T> CoreTree<T> {
             .ok_or(NodeIdError::BadNodeId)
     }
 
-    fn new_node_id(&self, index: usize) -> NodeId {
+    fn new_node_id(&self, index: slab::Index) -> NodeId {
         NodeId {
             tree_id: self.id,
             index,
@@ -108,82 +85,6 @@ mod tests {
         let capacity = 5;
         let tree = CoreTree::<i32>::new(capacity);
         assert_eq!(tree.capacity(), capacity);
-    }
-
-    #[test]
-    fn reserve() {
-        let capacity = 1;
-        let extra = 5;
-
-        let mut tree = CoreTree::new(capacity);
-        assert_eq!(tree.capacity(), capacity);
-
-        tree.insert(1);
-
-        tree.reserve(extra);
-        assert!(tree.capacity() >= capacity + extra);
-    }
-
-    #[test]
-    fn reserve_exact() {
-        let capacity = 1;
-        let extra = 5;
-
-        let mut tree = CoreTree::new(capacity);
-        assert_eq!(tree.capacity(), capacity);
-
-        tree.insert(1);
-
-        tree.reserve_exact(extra);
-        assert_eq!(tree.capacity(), capacity + extra);
-    }
-
-    #[test]
-    fn shrink_to_fit() {
-        let capacity = 2;
-
-        let mut tree = CoreTree::new(capacity);
-        assert_eq!(tree.capacity(), capacity);
-
-        tree.insert(1);
-
-        tree.shrink_to_fit();
-        assert_eq!(tree.capacity(), 1);
-    }
-
-    #[test]
-    fn clear() {
-        let mut tree = CoreTree::new(0);
-
-        let id = tree.insert(1);
-        assert_eq!(tree.get(&id).unwrap().data, 1);
-
-        tree.clear();
-        let res = tree.get(&id);
-
-        assert!(res.is_err());
-        assert_eq!(res.err().unwrap(), NodeIdError::BadNodeId);
-    }
-
-    #[test]
-    fn len() {
-        let mut tree = CoreTree::new(0);
-        assert_eq!(tree.len(), 0);
-
-        tree.insert(1);
-        assert_eq!(tree.len(), 1);
-
-        tree.insert(3);
-        assert_eq!(tree.len(), 2);
-    }
-
-    #[test]
-    fn is_empty() {
-        let mut tree = CoreTree::new(0);
-        assert!(tree.is_empty());
-
-        tree.insert(1);
-        assert!(!tree.is_empty());
     }
 
     #[test]

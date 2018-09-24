@@ -1,7 +1,7 @@
 use std::mem;
 
-#[derive(Copy, Clone)]
-pub struct Index {
+#[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
+pub(super) struct Index {
     index: usize,
     generation: u64,
 }
@@ -12,14 +12,14 @@ enum Slot<T> {
     Filled { item: T, generation: u64 },
 }
 
-pub struct Slab<T> {
+pub(super) struct Slab<T> {
     data: Vec<Slot<T>>,
     first_free_slot: Option<usize>,
     generation: u64,
 }
 
 impl<T> Slab<T> {
-    pub fn new(capacity: usize) -> Slab<T> {
+    pub(super) fn new(capacity: usize) -> Slab<T> {
         Slab {
             data: Vec::with_capacity(capacity),
             first_free_slot: None,
@@ -27,7 +27,11 @@ impl<T> Slab<T> {
         }
     }
 
-    pub fn insert(&mut self, item: T) -> Index {
+    pub(super) fn capacity(&self) -> usize {
+        self.data.capacity()
+    }
+
+    pub(super) fn insert(&mut self, item: T) -> Index {
         let new_slot = Slot::Filled {
             item,
             generation: self.generation,
@@ -59,7 +63,7 @@ impl<T> Slab<T> {
         }
     }
 
-    pub fn remove(&mut self, index: Index) -> Option<T> {
+    pub(super) fn remove(&mut self, index: Index) -> Option<T> {
         if index.index >= self.data.len() {
             return None;
         }
@@ -89,7 +93,7 @@ impl<T> Slab<T> {
         }
     }
 
-    pub fn get(&self, index: Index) -> Option<&T> {
+    pub(super) fn get(&self, index: Index) -> Option<&T> {
         self.data.get(index.index)
             .and_then(|slot| {
                 match slot {
@@ -104,7 +108,7 @@ impl<T> Slab<T> {
             })
     }
 
-    pub fn get_mut(&mut self, index: Index) -> Option<&mut T> {
+    pub(super) fn get_mut(&mut self, index: Index) -> Option<&mut T> {
         self.data.get_mut(index.index)
             .and_then(|slot| {
                 match slot {
@@ -129,7 +133,7 @@ mod tests {
         let capacity = 5;
         let slab = Slab::<i32>::new(capacity);
 
-        assert_eq!(slab.data.capacity(), capacity);
+        assert_eq!(slab.capacity(), capacity);
         assert!(slab.first_free_slot.is_none());
         assert_eq!(slab.generation, 0);
     }
