@@ -1,5 +1,4 @@
 use snowflake::ProcessUniqueId;
-use std::mem;
 
 use node::Node;
 use tree::error::*;
@@ -45,7 +44,6 @@ impl<T> CoreTree<T> {
     // todo: return an Option<T> here instead
     pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
         let node = self.slab.remove(node_id.index).expect("Invalid NodeId");
-        mem::drop(node_id);
         node.data
     }
 

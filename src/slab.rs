@@ -86,7 +86,7 @@ impl<T> Slab<T> {
                     None
                 }
             },
-            s @ _ =>  {
+            s =>  {
                 self.data[index.index] = s;
                 None
             }

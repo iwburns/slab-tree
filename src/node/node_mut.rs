@@ -27,7 +27,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .parent
-            .clone()
             .map(move |id| self.tree.new_node_mut(id))
     }
 
@@ -35,7 +34,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .prev_sibling
-            .clone()
             .map(move |id| self.tree.new_node_mut(id))
     }
 
@@ -43,7 +41,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .next_sibling
-            .clone()
             .map(move |id| self.tree.new_node_mut(id))
     }
 
@@ -51,7 +48,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .first_child
-            .clone()
             .map(move |id| self.tree.new_node_mut(id))
     }
 
@@ -59,7 +55,6 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .last_child
-            .clone()
             .map(move |id| self.tree.new_node_mut(id))
     }
 
@@ -69,16 +64,16 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let current_id = self.node_id;
         let relatives = self.tree.get_node_relatives(current_id);
 
-        let prev_sibling = relatives.last_child.clone();
-        self.tree.set_parent(new_id, Some(current_id.clone()));
-        self.tree.set_prev_sibling(new_id, prev_sibling.clone());
+        let prev_sibling = relatives.last_child;
+        self.tree.set_parent(new_id, Some(current_id));
+        self.tree.set_prev_sibling(new_id, prev_sibling);
 
-        let first_child = relatives.first_child.or_else(|| Some(new_id.clone()));
+        let first_child = relatives.first_child.or_else(|| Some(new_id));
         self.tree.set_first_child(current_id, first_child);
-        self.tree.set_last_child(current_id, Some(new_id.clone()));
+        self.tree.set_last_child(current_id, Some(new_id));
 
         if let Some(node_id) = prev_sibling {
-            self.tree.set_next_sibling(node_id, Some(new_id.clone()));
+            self.tree.set_next_sibling(node_id, Some(new_id));
         }
 
         self.tree.new_node_mut(new_id)
@@ -90,16 +85,16 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let current_id = self.node_id;
         let relatives = self.tree.get_node_relatives(self.node_id);
 
-        let next_sibling = relatives.first_child.clone();
-        self.tree.set_parent(new_id, Some(current_id.clone()));
-        self.tree.set_next_sibling(new_id, next_sibling.clone());
+        let next_sibling = relatives.first_child;
+        self.tree.set_parent(new_id, Some(current_id));
+        self.tree.set_next_sibling(new_id, next_sibling);
 
-        let last_child = relatives.last_child.or_else(|| Some(new_id.clone()));
-        self.tree.set_first_child(current_id, Some(new_id.clone()));
+        let last_child = relatives.last_child.or_else(|| Some(new_id));
+        self.tree.set_first_child(current_id, Some(new_id));
         self.tree.set_last_child(current_id, last_child);
 
         if let Some(node_id) = next_sibling {
-            self.tree.set_prev_sibling(node_id, Some(new_id.clone()));
+            self.tree.set_prev_sibling(node_id, Some(new_id));
         }
 
         self.tree.new_node_mut(new_id)

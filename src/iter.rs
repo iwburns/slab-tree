@@ -21,7 +21,7 @@ impl<'a, T> Iterator for Ancestors<'a, T> {
             .take()
             .and_then(|node_id| self.tree.get_node_relatives(node_id).parent)
             .map(|id| {
-                self.node_id = Some(id.clone());
+                self.node_id = Some(id);
                 self.tree.new_node_ref(id)
             })
     }

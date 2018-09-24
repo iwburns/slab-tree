@@ -98,7 +98,7 @@ impl<T> Tree<T> {
     /// ```
     ///
     pub fn root(&self) -> NodeRef<T> {
-        self.new_node_ref(self.root_id.clone())
+        self.new_node_ref(self.root_id)
     }
 
     ///
@@ -117,7 +117,8 @@ impl<T> Tree<T> {
     /// ```
     ///
     pub fn root_mut(&mut self) -> NodeMut<T> {
-        let node_id = self.root_id.clone();
+        // NOTE: should be able to simplify with NLL
+        let node_id = self.root_id;
         self.new_node_mut(node_id)
     }
 
@@ -141,7 +142,7 @@ impl<T> Tree<T> {
     ///
     pub fn get(&self, node_id: NodeId) -> Result<NodeRef<T>, NodeIdError> {
         let _ = self.core_tree.get(node_id)?;
-        Ok(self.new_node_ref(node_id.clone()))
+        Ok(self.new_node_ref(node_id))
     }
 
     ///
@@ -166,7 +167,7 @@ impl<T> Tree<T> {
     ///
     pub fn get_mut(&mut self, node_id: NodeId) -> Result<NodeMut<T>, NodeIdError> {
         let _ = self.core_tree.get_mut(node_id)?;
-        Ok(self.new_node_mut(node_id.clone()))
+        Ok(self.new_node_mut(node_id))
     }
 
     pub(crate) fn get_node(&self, node_id: NodeId) -> Result<&Node<T>, NodeIdError> {
@@ -253,7 +254,7 @@ impl<T> Tree<T> {
 
     pub(crate) fn get_node_prev_sibling_id(&self, node_id: NodeId) -> Option<NodeId> {
         if let Ok(node) = self.get_node(node_id) {
-            node.relatives.prev_sibling.clone()
+            node.relatives.prev_sibling
         } else {
             unreachable!()
         }
@@ -261,7 +262,7 @@ impl<T> Tree<T> {
 
     pub(crate) fn get_node_next_sibling_id(&self, node_id: NodeId) -> Option<NodeId> {
         if let Ok(node) = self.get_node(node_id) {
-            node.relatives.next_sibling.clone()
+            node.relatives.next_sibling
         } else {
             unreachable!()
         }

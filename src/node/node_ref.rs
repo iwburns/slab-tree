@@ -50,7 +50,6 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .parent
-            .clone()
             .map(|id| self.tree.new_node_ref(id))
     }
 
@@ -71,7 +70,6 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .prev_sibling
-            .clone()
             .map(|id| self.tree.new_node_ref(id))
     }
 
@@ -92,7 +90,6 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .next_sibling
-            .clone()
             .map(|id| self.tree.new_node_ref(id))
     }
 
@@ -113,7 +110,6 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .first_child
-            .clone()
             .map(|id| self.tree.new_node_ref(id))
     }
 
@@ -134,7 +130,6 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .last_child
-            .clone()
             .map(|id| self.tree.new_node_ref(id))
     }
 
@@ -163,7 +158,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     ///
     pub fn ancestors(&self) -> impl Iterator<Item = NodeRef<T>> {
-        Ancestors::new(Some(self.node_id.clone()), self.tree)
+        Ancestors::new(Some(self.node_id), self.tree)
     }
 
     ///
