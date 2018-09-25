@@ -38,12 +38,10 @@ impl<T> Slab<T> {
         };
 
         if let Some(index) = self.first_free_slot {
-            let empty_slot = mem::replace(
+            match mem::replace(
                 &mut self.data[index],
                 new_slot
-            );
-
-            match empty_slot {
+            ) {
                 Slot::Empty { next_free_slot } => {
                     self.first_free_slot = next_free_slot;
                 }
@@ -176,12 +174,82 @@ mod tests {
     }
 
     #[test]
-    fn remove() {
+    fn remove_basic() {
         let mut slab = Slab::new(5);
-        let six = slab.insert(6);
-        // |6|
+        let _six = slab.insert(6);
         let seven = slab.insert(7);
-        // |6|7|
+        let _eight = slab.insert(8);
+        // |6|7|8|
+
+        let seven_rem = slab.remove(seven);
+        // |6|.|8|
+        assert!(seven_rem.is_some());
+        assert_eq!(seven_rem.unwrap(), 7);
+
+        assert_eq!(slab.first_free_slot.unwrap_or(10), 1);
+        assert_eq!(slab.generation, 1);
+
+        let six_slot = slab.data.get(0);
+        assert!(six_slot.is_some());
+
+        match six_slot.unwrap() {
+            Slot::Empty { .. } => {
+                panic!("Slot should be filled after call to insert.");
+            }
+            Slot::Filled { item, generation } => {
+                assert_eq!(item, &6);
+                assert_eq!(generation, &0);
+            }
+        }
+
+        let seven_slot = slab.data.get(1);
+        assert!(seven_slot.is_some());
+
+        match seven_slot.unwrap() {
+            Slot::Empty { next_free_slot } => {
+                assert!(next_free_slot.is_none());
+            }
+            Slot::Filled { .. } => {
+                panic!("Slot should be empty after call to remove.");
+            }
+        }
+
+        let eight_slot = slab.data.get(2);
+        assert!(eight_slot.is_some());
+
+        match eight_slot.unwrap() {
+            Slot::Empty { .. } => {
+                panic!("Slot should be filled after call to insert.");
+            }
+            Slot::Filled { item, generation } => {
+                assert_eq!(item, &8);
+                assert_eq!(generation, &0);
+            }
+        }
+    }
+
+    #[test]
+    fn double_remove() {
+        let mut slab = Slab::new(5);
+        let _six = slab.insert(6);
+        let seven = slab.insert(7);
+        let _eight = slab.insert(8);
+        // |6|7|8|
+
+        let seven_rem = slab.remove(seven);
+        // |6|.|8|
+        assert!(seven_rem.is_some());
+        assert_eq!(seven_rem.unwrap(), 7);
+
+        let seven_again = slab.remove(seven);
+        assert!(seven_again.is_none());
+    }
+
+    #[test]
+    fn remove_multiple() {
+        let mut slab = Slab::new(5);
+        let _six = slab.insert(6);
+        let seven = slab.insert(7);
         let eight = slab.insert(8);
         // |6|7|8|
 
@@ -193,15 +261,11 @@ mod tests {
         assert_eq!(slab.first_free_slot.unwrap_or(10), 1);
         assert_eq!(slab.generation, 1);
 
-        let seven_again = slab.remove(seven);
-        assert!(seven_again.is_none());
-
         {
             let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
-            let six_slot = six_slot.unwrap();
-            match six_slot {
+            match six_slot.unwrap() {
                 Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
                 }
@@ -214,8 +278,7 @@ mod tests {
             let seven_slot = slab.data.get(1);
             assert!(seven_slot.is_some());
 
-            let seven_slot = seven_slot.unwrap();
-            match seven_slot {
+            match seven_slot.unwrap() {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
                 }
@@ -227,8 +290,7 @@ mod tests {
             let eight_slot = slab.data.get(2);
             assert!(eight_slot.is_some());
 
-            let eight_slot = eight_slot.unwrap();
-            match eight_slot {
+            match eight_slot.unwrap() {
                 Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
                 }
@@ -251,8 +313,7 @@ mod tests {
             let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
-            let six_slot = six_slot.unwrap();
-            match six_slot {
+            match six_slot.unwrap() {
                 Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
                 }
@@ -265,8 +326,7 @@ mod tests {
             let seven_slot = slab.data.get(1);
             assert!(seven_slot.is_some());
 
-            let seven_slot = seven_slot.unwrap();
-            match seven_slot {
+            match seven_slot.unwrap() {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
                 }
@@ -278,8 +338,7 @@ mod tests {
             let eight_slot = slab.data.get(2);
             assert!(eight_slot.is_some());
 
-            let eight_slot = eight_slot.unwrap();
-            match eight_slot {
+            match eight_slot.unwrap() {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_some());
                     assert_eq!(next_free_slot.unwrap(), 1);
@@ -289,6 +348,31 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn remove_and_reinsert() {
+        let mut slab = Slab::new(5);
+        let _six = slab.insert(6);
+        let seven = slab.insert(7);
+        let eight = slab.insert(8);
+        // |6|7|8|
+
+        let seven_rem = slab.remove(seven);
+        // |6|.|8|
+        assert!(seven_rem.is_some());
+        assert_eq!(seven_rem.unwrap(), 7);
+
+        assert_eq!(slab.first_free_slot.unwrap_or(10), 1);
+        assert_eq!(slab.generation, 1);
+
+        let eight_rem = slab.remove(eight);
+        // |6|.|.|
+        assert!(eight_rem.is_some());
+        assert_eq!(eight_rem.unwrap(), 8);
+
+        assert_eq!(slab.first_free_slot.unwrap_or(10), 2);
+        assert_eq!(slab.generation, 2);
 
         let nine = slab.insert(9);
         // |6|.|9|
@@ -302,8 +386,7 @@ mod tests {
             let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
 
-            let six_slot = six_slot.unwrap();
-            match six_slot {
+            match six_slot.unwrap() {
                 Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
                 }
@@ -316,61 +399,7 @@ mod tests {
             let seven_slot = slab.data.get(1);
             assert!(seven_slot.is_some());
 
-            let seven_slot = seven_slot.unwrap();
-            match seven_slot {
-                Slot::Empty { next_free_slot } => {
-                    assert!(next_free_slot.is_none());
-                }
-                Slot::Filled { .. } => {
-                    panic!("Slot should be empty after call to remove.");
-                }
-            }
-
-
-
-            let nine_slot = slab.data.get(2);
-            assert!(nine_slot.is_some());
-
-            let nine_slot = nine_slot.unwrap();
-            match nine_slot {
-                Slot::Empty { .. } => {
-                    panic!("Slot should be filled after call to insert.");
-                }
-                Slot::Filled { item, generation } => {
-                    assert_eq!(item, &9);
-                    assert_eq!(generation, &2);
-                }
-            }
-        }
-
-        let six_rem = slab.remove(six);
-        // |.|.|9|
-        assert!(six_rem.is_some());
-        assert_eq!(six_rem.unwrap(), 6);
-
-        assert_eq!(slab.first_free_slot.unwrap_or(10), 0);
-        assert_eq!(slab.generation, 3);
-
-        {
-            let six_slot = slab.data.get(0);
-            assert!(six_slot.is_some());
-
-            let six_slot = six_slot.unwrap();
-            match six_slot {
-                Slot::Empty { next_free_slot } => {
-                    assert!(next_free_slot.is_some());
-                    assert_eq!(next_free_slot.unwrap(), 1);
-                }
-                Slot::Filled { .. } => {
-                    panic!("Slot should be empty after call to remove.");
-                }
-            }
-
-            let seven_slot = slab.data.get(1);
-            assert!(seven_slot.is_some());
-
-            let seven_slot = seven_slot.unwrap();
-            match seven_slot {
+            match seven_slot.unwrap() {
                 Slot::Empty { next_free_slot } => {
                     assert!(next_free_slot.is_none());
                 }
@@ -382,8 +411,7 @@ mod tests {
             let nine_slot = slab.data.get(2);
             assert!(nine_slot.is_some());
 
-            let nine_slot = nine_slot.unwrap();
-            match nine_slot {
+            match nine_slot.unwrap() {
                 Slot::Empty { .. } => {
                     panic!("Slot should be filled after call to insert.");
                 }
@@ -393,6 +421,21 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn remove_with_bad_index() {
+        let mut slab = Slab::new(5);
+        let _six = slab.insert(6);
+        let _seven = slab.insert(7);
+        let mut eight = slab.insert(8);
+        // |0|1|2| index
+        // |6|7|8| value
+
+        eight.index = 3; // oops, this should be 2
+
+        let eight_rem = slab.remove(eight);
+        assert!(eight_rem.is_none());
     }
 
     #[test]

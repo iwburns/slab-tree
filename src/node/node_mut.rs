@@ -104,15 +104,12 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let first = relatives.first_child;
         let last = relatives.last_child;
 
-        let first_id;
+        let first_id = first?;
         if first == last {
-            first_id = first?;
             self.tree.set_first_child(self.node_id, None);
             self.tree.set_last_child(self.node_id, None);
         } else {
-            first_id = first?;
             let first_child = self.tree.get_node_relatives(first_id).next_sibling;
-
             self.tree.set_first_child(self.node_id, first_child);
             self.tree.set_next_siblings_prev_sibling(first_id, None);
         }
@@ -126,15 +123,12 @@ impl<'a, T: 'a> NodeMut<'a, T> {
         let first = relatives.first_child;
         let last = relatives.last_child;
 
-        let last_id;
+        let last_id = last?;
         if first == last {
-            last_id = last?;
             self.tree.set_first_child(self.node_id, None);
             self.tree.set_last_child(self.node_id, None);
         } else {
-            last_id = last?;
             let last_child = self.tree.get_node_relatives(last_id).prev_sibling;
-
             self.tree.set_last_child(self.node_id, last_child);
             self.tree.set_prev_siblings_next_sibling(last_id, None);
         }
