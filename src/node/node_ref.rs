@@ -146,8 +146,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .append(2)
     ///     .append(3)
     ///     .append(4)
-    ///     .node_id()
-    ///     .clone();
+    ///     .node_id();
     ///
     /// let leaf = tree.get(leaf_id).ok().unwrap();
     ///

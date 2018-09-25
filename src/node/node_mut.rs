@@ -61,16 +61,15 @@ impl<'a, T: 'a> NodeMut<'a, T> {
     pub fn append(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
-        let current_id = self.node_id;
-        let relatives = self.tree.get_node_relatives(current_id);
+        let relatives = self.tree.get_node_relatives(self.node_id);
 
         let prev_sibling = relatives.last_child;
-        self.tree.set_parent(new_id, Some(current_id));
+        self.tree.set_parent(new_id, Some(self.node_id));
         self.tree.set_prev_sibling(new_id, prev_sibling);
 
         let first_child = relatives.first_child.or_else(|| Some(new_id));
-        self.tree.set_first_child(current_id, first_child);
-        self.tree.set_last_child(current_id, Some(new_id));
+        self.tree.set_first_child(self.node_id, first_child);
+        self.tree.set_last_child(self.node_id, Some(new_id));
 
         if let Some(node_id) = prev_sibling {
             self.tree.set_next_sibling(node_id, Some(new_id));
@@ -82,16 +81,15 @@ impl<'a, T: 'a> NodeMut<'a, T> {
     pub fn prepend(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
-        let current_id = self.node_id;
         let relatives = self.tree.get_node_relatives(self.node_id);
 
         let next_sibling = relatives.first_child;
-        self.tree.set_parent(new_id, Some(current_id));
+        self.tree.set_parent(new_id, Some(self.node_id));
         self.tree.set_next_sibling(new_id, next_sibling);
 
         let last_child = relatives.last_child.or_else(|| Some(new_id));
-        self.tree.set_first_child(current_id, Some(new_id));
-        self.tree.set_last_child(current_id, last_child);
+        self.tree.set_first_child(self.node_id, Some(new_id));
+        self.tree.set_last_child(self.node_id, last_child);
 
         if let Some(node_id) = next_sibling {
             self.tree.set_prev_sibling(node_id, Some(new_id));
@@ -101,22 +99,21 @@ impl<'a, T: 'a> NodeMut<'a, T> {
     }
 
     pub fn remove_first(&mut self) -> Option<T> {
-        let current_id = self.node_id;
-        let current_relatives = self.tree.get_node_relatives(current_id);
+        let relatives = self.tree.get_node_relatives(self.node_id);
 
-        let first = current_relatives.first_child;
-        let last = current_relatives.last_child;
+        let first = relatives.first_child;
+        let last = relatives.last_child;
 
         let first_id;
         if first == last {
             first_id = first?;
-            self.tree.set_first_child(current_id, None);
-            self.tree.set_last_child(current_id, None);
+            self.tree.set_first_child(self.node_id, None);
+            self.tree.set_last_child(self.node_id, None);
         } else {
             first_id = first?;
             let first_child = self.tree.get_node_relatives(first_id).next_sibling;
 
-            self.tree.set_first_child(current_id, first_child);
+            self.tree.set_first_child(self.node_id, first_child);
             self.tree.set_next_siblings_prev_sibling(first_id, None);
         }
 
@@ -124,22 +121,21 @@ impl<'a, T: 'a> NodeMut<'a, T> {
     }
 
     pub fn remove_last(&mut self) -> Option<T> {
-        let current_id = self.node_id;
-        let current_node_relatives = self.tree.get_node_relatives(current_id);
+        let relatives = self.tree.get_node_relatives(self.node_id);
 
-        let first = current_node_relatives.first_child;
-        let last = current_node_relatives.last_child;
+        let first = relatives.first_child;
+        let last = relatives.last_child;
 
         let last_id;
         if first == last {
             last_id = last?;
-            self.tree.set_first_child(current_id, None);
-            self.tree.set_last_child(current_id, None);
+            self.tree.set_first_child(self.node_id, None);
+            self.tree.set_last_child(self.node_id, None);
         } else {
             last_id = last?;
             let last_child = self.tree.get_node_relatives(last_id).prev_sibling;
 
-            self.tree.set_last_child(current_id, last_child);
+            self.tree.set_last_child(self.node_id, last_child);
             self.tree.set_prev_siblings_next_sibling(last_id, None);
         }
 
