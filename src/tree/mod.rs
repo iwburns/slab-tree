@@ -154,7 +154,7 @@ impl<T> Tree<T> {
     /// use slab_tree::tree::Tree;
     ///
     /// let mut tree = Tree::new(1);
-    /// let root_id = tree.root_id().clone();
+    /// let root_id = tree.root_id();
     ///
     /// let root = tree.get_mut(root_id);
     /// assert!(root.is_ok());
@@ -330,7 +330,7 @@ mod tree_tests {
     fn get_mut() {
         let mut tree = Tree::new(1);
 
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root = tree.get_mut(root_id);
         assert!(root.is_ok());
 
@@ -345,7 +345,7 @@ mod tree_tests {
     fn get_node() {
         let tree = Tree::new(1);
 
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root = tree.get_node(root_id);
         assert!(root.is_ok());
 
@@ -357,7 +357,7 @@ mod tree_tests {
     fn get_node_mut() {
         let mut tree = Tree::new(1);
 
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root = tree.get_node_mut(root_id);
         assert!(root.is_ok());
 

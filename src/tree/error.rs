@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::fmt;
 
+// todo: consider removing these errors in favor of just returning Option instead of Result types
+
 ///
 /// Enum for all of the possible `NodeId` errors that could occur.
 ///

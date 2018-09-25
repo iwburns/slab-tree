@@ -158,7 +158,7 @@ mod node_mut_tests {
     #[test]
     fn node_id() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let root_mut = tree.get_mut(root_id).ok().unwrap();
         assert_eq!(root_id, root_mut.node_id());
@@ -167,7 +167,7 @@ mod node_mut_tests {
     #[test]
     fn data() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert_eq!(root_mut.data(), &mut 1);
@@ -179,7 +179,7 @@ mod node_mut_tests {
     #[test]
     fn parent() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert!(root_mut.parent().is_none());
     }
@@ -187,7 +187,7 @@ mod node_mut_tests {
     #[test]
     fn prev_sibling() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert!(root_mut.prev_sibling().is_none());
     }
@@ -195,7 +195,7 @@ mod node_mut_tests {
     #[test]
     fn next_sibling() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert!(root_mut.next_sibling().is_none());
     }
@@ -203,7 +203,7 @@ mod node_mut_tests {
     #[test]
     fn first_child() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert!(root_mut.first_child().is_none());
     }
@@ -211,7 +211,7 @@ mod node_mut_tests {
     #[test]
     fn last_child() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let mut root_mut = tree.get_mut(root_id).ok().unwrap();
         assert!(root_mut.last_child().is_none());
     }
@@ -219,26 +219,26 @@ mod node_mut_tests {
     #[test]
     fn append_no_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.append(2).node_id().clone();
+            new_id = root_mut.append(2).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id));
+        assert_eq!(root_node.relatives.last_child, Some(new_id));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
         assert_eq!(new_node.relatives.prev_sibling, None);
         assert_eq!(new_node.relatives.next_sibling, None);
         assert_eq!(new_node.relatives.first_child, None);
@@ -254,30 +254,30 @@ mod node_mut_tests {
     #[test]
     fn append_single_child_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         let new_id_2;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.append(2).node_id().clone();
-            new_id_2 = root_mut.append(3).node_id().clone();
+            new_id = root_mut.append(2).node_id();
+            new_id_2 = root_mut.append(3).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id_2.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id));
+        assert_eq!(root_node.relatives.last_child, Some(new_id_2));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
         assert_eq!(new_node.relatives.prev_sibling, None);
-        assert_eq!(new_node.relatives.next_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node.relatives.next_sibling, Some(new_id_2));
         assert_eq!(new_node.relatives.first_child, None);
         assert_eq!(new_node.relatives.last_child, None);
 
@@ -285,8 +285,8 @@ mod node_mut_tests {
         assert!(new_node_2.is_ok());
 
         let new_node_2 = new_node_2.ok().unwrap();
-        assert_eq!(new_node_2.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id.clone()));
+        assert_eq!(new_node_2.relatives.parent, Some(root_id));
+        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id));
         assert_eq!(new_node_2.relatives.next_sibling, None);
         assert_eq!(new_node_2.relatives.first_child, None);
         assert_eq!(new_node_2.relatives.last_child, None);
@@ -304,32 +304,32 @@ mod node_mut_tests {
     #[test]
     fn append_two_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         let new_id_2;
         let new_id_3;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.append(2).node_id().clone();
-            new_id_2 = root_mut.append(3).node_id().clone();
-            new_id_3 = root_mut.append(4).node_id().clone();
+            new_id = root_mut.append(2).node_id();
+            new_id_2 = root_mut.append(3).node_id();
+            new_id_3 = root_mut.append(4).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id_3.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id));
+        assert_eq!(root_node.relatives.last_child, Some(new_id_3));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
         assert_eq!(new_node.relatives.prev_sibling, None);
-        assert_eq!(new_node.relatives.next_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node.relatives.next_sibling, Some(new_id_2));
         assert_eq!(new_node.relatives.first_child, None);
         assert_eq!(new_node.relatives.last_child, None);
 
@@ -337,9 +337,9 @@ mod node_mut_tests {
         assert!(new_node_2.is_ok());
 
         let new_node_2 = new_node_2.ok().unwrap();
-        assert_eq!(new_node_2.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id.clone()));
-        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id_3.clone()));
+        assert_eq!(new_node_2.relatives.parent, Some(root_id));
+        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id));
+        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id_3));
         assert_eq!(new_node_2.relatives.first_child, None);
         assert_eq!(new_node_2.relatives.last_child, None);
 
@@ -347,8 +347,8 @@ mod node_mut_tests {
         assert!(new_node_3.is_ok());
 
         let new_node_3 = new_node_3.ok().unwrap();
-        assert_eq!(new_node_3.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node_3.relatives.prev_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node_3.relatives.parent, Some(root_id));
+        assert_eq!(new_node_3.relatives.prev_sibling, Some(new_id_2));
         assert_eq!(new_node_3.relatives.next_sibling, None);
         assert_eq!(new_node_3.relatives.first_child, None);
         assert_eq!(new_node_3.relatives.last_child, None);
@@ -376,26 +376,26 @@ mod node_mut_tests {
     #[test]
     fn prepend_no_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.prepend(2).node_id().clone();
+            new_id = root_mut.prepend(2).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id));
+        assert_eq!(root_node.relatives.last_child, Some(new_id));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
         assert_eq!(new_node.relatives.prev_sibling, None);
         assert_eq!(new_node.relatives.next_sibling, None);
         assert_eq!(new_node.relatives.first_child, None);
@@ -411,29 +411,29 @@ mod node_mut_tests {
     #[test]
     fn prepend_single_child_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         let new_id_2;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.prepend(2).node_id().clone();
-            new_id_2 = root_mut.prepend(3).node_id().clone();
+            new_id = root_mut.prepend(2).node_id();
+            new_id_2 = root_mut.prepend(3).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id_2.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id_2));
+        assert_eq!(root_node.relatives.last_child, Some(new_id));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node.relatives.prev_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
+        assert_eq!(new_node.relatives.prev_sibling, Some(new_id_2));
         assert_eq!(new_node.relatives.next_sibling, None);
         assert_eq!(new_node.relatives.first_child, None);
         assert_eq!(new_node.relatives.last_child, None);
@@ -442,9 +442,9 @@ mod node_mut_tests {
         assert!(new_node_2.is_ok());
 
         let new_node_2 = new_node_2.ok().unwrap();
-        assert_eq!(new_node_2.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node_2.relatives.parent, Some(root_id));
         assert_eq!(new_node_2.relatives.prev_sibling, None);
-        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id.clone()));
+        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id));
         assert_eq!(new_node_2.relatives.first_child, None);
         assert_eq!(new_node_2.relatives.last_child, None);
 
@@ -461,31 +461,31 @@ mod node_mut_tests {
     #[test]
     fn prepend_two_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let new_id;
         let new_id_2;
         let new_id_3;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            new_id = root_mut.prepend(2).node_id().clone();
-            new_id_2 = root_mut.prepend(3).node_id().clone();
-            new_id_3 = root_mut.prepend(4).node_id().clone();
+            new_id = root_mut.prepend(2).node_id();
+            new_id_2 = root_mut.prepend(3).node_id();
+            new_id_3 = root_mut.prepend(4).node_id();
         }
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(new_id_3.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(new_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(new_id_3));
+        assert_eq!(root_node.relatives.last_child, Some(new_id));
 
         let new_node = tree.get_node(new_id);
         assert!(new_node.is_ok());
 
         let new_node = new_node.ok().unwrap();
-        assert_eq!(new_node.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node.relatives.prev_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node.relatives.parent, Some(root_id));
+        assert_eq!(new_node.relatives.prev_sibling, Some(new_id_2));
         assert_eq!(new_node.relatives.next_sibling, None);
         assert_eq!(new_node.relatives.first_child, None);
         assert_eq!(new_node.relatives.last_child, None);
@@ -494,9 +494,9 @@ mod node_mut_tests {
         assert!(new_node_2.is_ok());
 
         let new_node_2 = new_node_2.ok().unwrap();
-        assert_eq!(new_node_2.relatives.parent, Some(root_id.clone()));
-        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id_3.clone()));
-        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id.clone()));
+        assert_eq!(new_node_2.relatives.parent, Some(root_id));
+        assert_eq!(new_node_2.relatives.prev_sibling, Some(new_id_3));
+        assert_eq!(new_node_2.relatives.next_sibling, Some(new_id));
         assert_eq!(new_node_2.relatives.first_child, None);
         assert_eq!(new_node_2.relatives.last_child, None);
 
@@ -504,9 +504,9 @@ mod node_mut_tests {
         assert!(new_node_3.is_ok());
 
         let new_node_3 = new_node_3.ok().unwrap();
-        assert_eq!(new_node_3.relatives.parent, Some(root_id.clone()));
+        assert_eq!(new_node_3.relatives.parent, Some(root_id));
         assert_eq!(new_node_3.relatives.prev_sibling, None);
-        assert_eq!(new_node_3.relatives.next_sibling, Some(new_id_2.clone()));
+        assert_eq!(new_node_3.relatives.next_sibling, Some(new_id_2));
         assert_eq!(new_node_3.relatives.first_child, None);
         assert_eq!(new_node_3.relatives.last_child, None);
 
@@ -533,7 +533,7 @@ mod node_mut_tests {
     #[test]
     fn remove_first_no_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
@@ -552,7 +552,7 @@ mod node_mut_tests {
     #[test]
     fn remove_first_single_child_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
@@ -572,13 +572,13 @@ mod node_mut_tests {
     #[test]
     fn remove_first_two_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let node_id;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
             root_mut.append(2);
-            node_id = root_mut.append(3).node_id().clone();
+            node_id = root_mut.append(3).node_id();
 
             let first_child_data = root_mut.remove_first();
             assert_eq!(first_child_data, Some(2));
@@ -588,14 +588,14 @@ mod node_mut_tests {
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(node_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(node_id));
+        assert_eq!(root_node.relatives.last_child, Some(node_id));
 
         let node = tree.get_node(node_id);
         assert!(node.is_ok());
 
         let node = node.ok().unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(node.relatives.parent, Some(root_id));
         assert_eq!(node.relatives.prev_sibling, None);
         assert_eq!(node.relatives.next_sibling, None);
         assert_eq!(node.relatives.first_child, None);
@@ -605,15 +605,15 @@ mod node_mut_tests {
     #[test]
     fn remove_first_three_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let node_id;
         let node_id_2;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
             root_mut.append(2);
-            node_id = root_mut.append(3).node_id().clone();
-            node_id_2 = root_mut.append(4).node_id().clone();
+            node_id = root_mut.append(3).node_id();
+            node_id_2 = root_mut.append(4).node_id();
 
             let first_child_data = root_mut.remove_first();
             assert_eq!(first_child_data, Some(2));
@@ -623,16 +623,16 @@ mod node_mut_tests {
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(node_id_2.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(node_id));
+        assert_eq!(root_node.relatives.last_child, Some(node_id_2));
 
         let node = tree.get_node(node_id);
         assert!(node.is_ok());
 
         let node = node.ok().unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(node.relatives.parent, Some(root_id));
         assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, Some(node_id_2.clone()));
+        assert_eq!(node.relatives.next_sibling, Some(node_id_2));
         assert_eq!(node.relatives.first_child, None);
         assert_eq!(node.relatives.last_child, None);
 
@@ -640,8 +640,8 @@ mod node_mut_tests {
         assert!(node_2.is_ok());
 
         let node_2 = node_2.ok().unwrap();
-        assert_eq!(node_2.relatives.parent, Some(root_id.clone()));
-        assert_eq!(node_2.relatives.prev_sibling, Some(node_id.clone()));
+        assert_eq!(node_2.relatives.parent, Some(root_id));
+        assert_eq!(node_2.relatives.prev_sibling, Some(node_id));
         assert_eq!(node_2.relatives.next_sibling, None);
         assert_eq!(node_2.relatives.first_child, None);
         assert_eq!(node_2.relatives.last_child, None);
@@ -650,7 +650,7 @@ mod node_mut_tests {
     #[test]
     fn remove_last_no_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
@@ -669,7 +669,7 @@ mod node_mut_tests {
     #[test]
     fn remove_last_single_child_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
@@ -689,12 +689,12 @@ mod node_mut_tests {
     #[test]
     fn remove_last_two_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let node_id;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            node_id = root_mut.append(2).node_id().clone();
+            node_id = root_mut.append(2).node_id();
             root_mut.append(3);
 
             let last_child_data = root_mut.remove_last();
@@ -705,14 +705,14 @@ mod node_mut_tests {
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(node_id.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(node_id));
+        assert_eq!(root_node.relatives.last_child, Some(node_id));
 
         let node = tree.get_node(node_id);
         assert!(node.is_ok());
 
         let node = node.ok().unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(node.relatives.parent, Some(root_id));
         assert_eq!(node.relatives.prev_sibling, None);
         assert_eq!(node.relatives.next_sibling, None);
         assert_eq!(node.relatives.first_child, None);
@@ -722,14 +722,14 @@ mod node_mut_tests {
     #[test]
     fn remove_last_three_children_present() {
         let mut tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
 
         let node_id;
         let node_id_2;
         {
             let mut root_mut = tree.get_mut(root_id).ok().unwrap();
-            node_id = root_mut.append(2).node_id().clone();
-            node_id_2 = root_mut.append(3).node_id().clone();
+            node_id = root_mut.append(2).node_id();
+            node_id_2 = root_mut.append(3).node_id();
             root_mut.append(4);
 
             let last_child_data = root_mut.remove_last();
@@ -740,16 +740,16 @@ mod node_mut_tests {
         assert!(root_node.is_ok());
 
         let root_node = root_node.ok().unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id.clone()));
-        assert_eq!(root_node.relatives.last_child, Some(node_id_2.clone()));
+        assert_eq!(root_node.relatives.first_child, Some(node_id));
+        assert_eq!(root_node.relatives.last_child, Some(node_id_2));
 
         let node = tree.get_node(node_id);
         assert!(node.is_ok());
 
         let node = node.ok().unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id.clone()));
+        assert_eq!(node.relatives.parent, Some(root_id));
         assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, Some(node_id_2.clone()));
+        assert_eq!(node.relatives.next_sibling, Some(node_id_2));
         assert_eq!(node.relatives.first_child, None);
         assert_eq!(node.relatives.last_child, None);
 
@@ -757,8 +757,8 @@ mod node_mut_tests {
         assert!(node_2.is_ok());
 
         let node_2 = node_2.ok().unwrap();
-        assert_eq!(node_2.relatives.parent, Some(root_id.clone()));
-        assert_eq!(node_2.relatives.prev_sibling, Some(node_id.clone()));
+        assert_eq!(node_2.relatives.parent, Some(root_id));
+        assert_eq!(node_2.relatives.prev_sibling, Some(node_id));
         assert_eq!(node_2.relatives.next_sibling, None);
         assert_eq!(node_2.relatives.first_child, None);
         assert_eq!(node_2.relatives.last_child, None);

@@ -203,7 +203,7 @@ mod node_ref_tests {
     #[test]
     fn data() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert_eq!(root_ref.data(), &1);
     }
@@ -211,7 +211,7 @@ mod node_ref_tests {
     #[test]
     fn parent() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.parent().is_none());
     }
@@ -219,7 +219,7 @@ mod node_ref_tests {
     #[test]
     fn prev_sibling() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.prev_sibling().is_none());
     }
@@ -227,7 +227,7 @@ mod node_ref_tests {
     #[test]
     fn next_sibling() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.next_sibling().is_none());
     }
@@ -235,7 +235,7 @@ mod node_ref_tests {
     #[test]
     fn first_child() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.first_child().is_none());
     }
@@ -243,7 +243,7 @@ mod node_ref_tests {
     #[test]
     fn last_child() {
         let tree = Tree::new(1);
-        let root_id = tree.root_id().clone();
+        let root_id = tree.root_id();
         let root_ref = tree.get(root_id).ok().unwrap();
         assert!(root_ref.last_child().is_none());
     }
@@ -259,8 +259,7 @@ mod node_ref_tests {
                 .append(3)
                 .append(4)
                 .append(5)
-                .node_id()
-                .clone();
+                .node_id();
         }
         let tree = tree;
 
