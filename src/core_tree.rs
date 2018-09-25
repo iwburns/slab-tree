@@ -1,18 +1,8 @@
 use snowflake::ProcessUniqueId;
-
-use node::Node;
-use tree::error::*;
 use slab;
-
-///
-/// An identifier used to differentiate between Nodes and tie
-/// them to a specific tree.
-///
-#[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
-pub struct NodeId {
-    tree_id: ProcessUniqueId,
-    index: slab::Index,
-}
+use node::Node;
+use NodeId;
+use error::NodeIdError;
 
 ///
 /// A wrapper around a Slab containing Node<T> values.
@@ -74,6 +64,7 @@ impl<T> CoreTree<T> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,5 +118,19 @@ mod tests {
 
         assert_eq!(tree.get_mut(id).unwrap().data, 1);
         assert_eq!(tree.get_mut(id2).unwrap().data, 3);
+    }
+
+    #[test]
+    fn get_with_bad_id() {
+        let mut tree = CoreTree::new(0);
+        let tree2: CoreTree<i32> = CoreTree::new(0);
+
+        let mut id = tree.insert(1);
+        id.tree_id = tree2.id;  // oops, wrong tree id.
+
+        let result = tree.get(id);
+
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap(), NodeIdError::WrongTree);
     }
 }

@@ -1,6 +1,6 @@
 use node::Node;
-use tree::core::NodeId;
 use tree::Tree;
+use NodeId;
 
 ///
 /// A mutable reference to a given `Node`'s data and its relatives.
@@ -151,6 +151,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_mut_tests {
     use tree::Tree;

@@ -124,6 +124,7 @@ impl<T> Slab<T> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -191,6 +192,9 @@ mod tests {
 
         assert_eq!(slab.first_free_slot.unwrap_or(10), 1);
         assert_eq!(slab.generation, 1);
+
+        let seven_again = slab.remove(seven);
+        assert!(seven_again.is_none());
 
         {
             let six_slot = slab.data.get(0);
@@ -291,6 +295,9 @@ mod tests {
         assert_eq!(nine.index, 2);
         assert_eq!(nine.generation, 2);
 
+        let eight_again = slab.remove(eight);
+        assert!(eight_again.is_none());
+
         {
             let six_slot = slab.data.get(0);
             assert!(six_slot.is_some());
@@ -318,6 +325,8 @@ mod tests {
                     panic!("Slot should be empty after call to remove.");
                 }
             }
+
+
 
             let nine_slot = slab.data.get(2);
             assert!(nine_slot.is_some());

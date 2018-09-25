@@ -4,7 +4,7 @@ mod node_ref;
 pub use self::node_mut::NodeMut;
 pub use self::node_ref::NodeRef;
 
-use tree::core::NodeId;
+use NodeId;
 
 #[derive(Copy, Clone)]
 pub(crate) struct Relatives {

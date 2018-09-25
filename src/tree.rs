@@ -1,10 +1,7 @@
-pub mod core;
-pub mod error;
-
-use self::core::CoreTree;
-use self::core::NodeId;
-use self::error::NodeIdError;
+use core_tree::CoreTree;
 use node::*;
+use NodeId;
+use error::NodeIdError;
 
 ///
 /// A tree structure containing `Node`s.
@@ -277,6 +274,7 @@ impl<T> Tree<T> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod tree_tests {
     use super::*;

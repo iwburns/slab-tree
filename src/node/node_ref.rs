@@ -1,8 +1,8 @@
 use iter::Ancestors;
 use iter::NextSiblings;
 use node::Node;
-use tree::core::NodeId;
 use tree::Tree;
+use NodeId;
 
 ///
 /// An immutable reference to a given `Node`'s data and its relatives.
@@ -196,6 +196,7 @@ impl<'a, T> NodeRef<'a, T> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_ref_tests {
     use tree::Tree;
