@@ -270,7 +270,7 @@ impl<T> Tree<T> {
 
     pub(crate) fn get_node_relatives(&self, node_id: NodeId) -> Relatives {
         if let Ok(node) = self.get_node(node_id) {
-            node.relatives.clone()
+            node.relatives
         } else {
             unreachable!()
         }

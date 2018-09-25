@@ -6,7 +6,7 @@ pub use self::node_ref::NodeRef;
 
 use tree::core::NodeId;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub(crate) struct Relatives {
     pub(crate) parent: Option<NodeId>,
     pub(crate) prev_sibling: Option<NodeId>,
