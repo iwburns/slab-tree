@@ -14,7 +14,7 @@
 @test-lib:
     cargo test --lib
 
-@test-all:
+@test:
     cargo test
 
 @lint:
