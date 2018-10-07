@@ -1,8 +1,9 @@
 [package]
 name = "slab_tree"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Ian <iwburns8@gmail.com>"]
 description = "A vec-backed tree structure with tree-specific generational indexes."
+documentation = "https://docs.rs/slab_tree"
 repository = "https://github.com/iwburns/slab-tree"
 readme = "README.md"
 keywords = ["tree", "slab", "slab-tree"]
