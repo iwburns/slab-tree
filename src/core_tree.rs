@@ -9,6 +9,7 @@ use error::NodeIdError;
 ///
 /// Groups a collection of Node<T>s with a process unique id.
 ///
+#[derive(Debug, PartialEq)]
 pub(crate) struct CoreTree<T> {
     id: ProcessUniqueId,
     slab: slab::Slab<Node<T>>,

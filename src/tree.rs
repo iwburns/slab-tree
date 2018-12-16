@@ -1,11 +1,12 @@
 use core_tree::CoreTree;
+use error::NodeIdError;
 use node::*;
 use NodeId;
-use error::NodeIdError;
 
 ///
 /// A tree structure containing `Node`s.
 ///
+#[derive(Debug, PartialEq)]
 pub struct Tree<T> {
     pub(crate) root_id: NodeId,
     pub(crate) core_tree: CoreTree<T>,

@@ -6,12 +6,13 @@ pub(super) struct Index {
     generation: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Slot<T> {
     Empty { next_free_slot: Option<usize> },
     Filled { item: T, generation: u64 },
 }
 
+#[derive(Debug, PartialEq)]
 pub(super) struct Slab<T> {
     data: Vec<Slot<T>>,
     first_free_slot: Option<usize>,

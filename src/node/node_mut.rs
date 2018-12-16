@@ -5,6 +5,7 @@ use NodeId;
 ///
 /// A mutable reference to a given `Node`'s data and its relatives.
 ///
+#[derive(Debug, PartialEq)]
 pub struct NodeMut<'a, T: 'a> {
     pub(crate) node_id: NodeId,
     pub(crate) tree: &'a mut Tree<T>,
