@@ -1,8 +1,8 @@
-use snowflake::ProcessUniqueId;
-use slab;
-use node::Node;
-use NodeId;
 use error::NodeIdError;
+use node::Node;
+use slab;
+use snowflake::ProcessUniqueId;
+use NodeId;
 
 ///
 /// A wrapper around a Slab containing Node<T> values.
@@ -127,7 +127,7 @@ mod tests {
         let tree2: CoreTree<i32> = CoreTree::new(0);
 
         let mut id = tree.insert(1);
-        id.tree_id = tree2.id;  // oops, wrong tree id.
+        id.tree_id = tree2.id; // oops, wrong tree id.
 
         let result = tree.get(id);
 

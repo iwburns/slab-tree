@@ -255,12 +255,7 @@ mod node_ref_tests {
         let node_id;
         {
             let mut root_mut = tree.root_mut();
-            node_id = root_mut
-                .append(2)
-                .append(3)
-                .append(4)
-                .append(5)
-                .node_id();
+            node_id = root_mut.append(2).append(3).append(4).append(5).node_id();
         }
         let tree = tree;
 
