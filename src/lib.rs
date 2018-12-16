@@ -2,19 +2,19 @@
 
 extern crate snowflake;
 
-mod slab;
 mod core_tree;
 pub mod error;
 pub mod iter;
 pub mod node;
+mod slab;
 pub mod tree;
 
-pub use tree::Tree;
-pub use node::NodeRef;
-pub use node::NodeMut;
 pub use iter::Ancestors;
 pub use iter::NextSiblings;
+pub use node::NodeMut;
+pub use node::NodeRef;
 use snowflake::ProcessUniqueId;
+pub use tree::Tree;
 
 ///
 /// An identifier used to differentiate between Nodes and tie

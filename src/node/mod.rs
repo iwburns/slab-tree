@@ -6,7 +6,7 @@ pub use self::node_ref::NodeRef;
 
 use NodeId;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) struct Relatives {
     pub(crate) parent: Option<NodeId>,
     pub(crate) prev_sibling: Option<NodeId>,
@@ -15,6 +15,7 @@ pub(crate) struct Relatives {
     pub(crate) last_child: Option<NodeId>,
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) struct Node<T> {
     pub(crate) data: T,
     pub(crate) relatives: Relatives,

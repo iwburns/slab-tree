@@ -6,12 +6,13 @@ pub(super) struct Index {
     generation: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Slot<T> {
     Empty { next_free_slot: Option<usize> },
     Filled { item: T, generation: u64 },
 }
 
+#[derive(Debug, PartialEq)]
 pub(super) struct Slab<T> {
     data: Vec<Slot<T>>,
     first_free_slot: Option<usize>,
@@ -38,10 +39,7 @@ impl<T> Slab<T> {
         };
 
         if let Some(index) = self.first_free_slot {
-            match mem::replace(
-                &mut self.data[index],
-                new_slot
-            ) {
+            match mem::replace(&mut self.data[index], new_slot) {
                 Slot::Empty { next_free_slot } => {
                     self.first_free_slot = next_free_slot;
                 }
@@ -69,7 +67,7 @@ impl<T> Slab<T> {
         let slot = mem::replace(
             &mut self.data[index.index],
             Slot::Empty {
-                next_free_slot: self.first_free_slot
+                next_free_slot: self.first_free_slot,
             },
         );
 
@@ -83,8 +81,8 @@ impl<T> Slab<T> {
                     self.data[index.index] = Slot::Filled { item, generation };
                     None
                 }
-            },
-            s =>  {
+            }
+            s => {
                 self.data[index.index] = s;
                 None
             }
@@ -92,33 +90,27 @@ impl<T> Slab<T> {
     }
 
     pub(super) fn get(&self, index: Index) -> Option<&T> {
-        self.data.get(index.index)
-            .and_then(|slot| {
-                match slot {
-                    Slot::Filled { item, generation } => {
-                        if index.generation == *generation {
-                            return Some(item);
-                        }
-                        None
-                    },
-                    _ => None,
+        self.data.get(index.index).and_then(|slot| match slot {
+            Slot::Filled { item, generation } => {
+                if index.generation == *generation {
+                    return Some(item);
                 }
-            })
+                None
+            }
+            _ => None,
+        })
     }
 
     pub(super) fn get_mut(&mut self, index: Index) -> Option<&mut T> {
-        self.data.get_mut(index.index)
-            .and_then(|slot| {
-                match slot {
-                    Slot::Filled { item, generation } => {
-                        if index.generation == *generation {
-                            return Some(item);
-                        }
-                        None
-                    },
-                    _ => None,
+        self.data.get_mut(index.index).and_then(|slot| match slot {
+            Slot::Filled { item, generation } => {
+                if index.generation == *generation {
+                    return Some(item);
                 }
-            })
+                None
+            }
+            _ => None,
+        })
     }
 }
 
