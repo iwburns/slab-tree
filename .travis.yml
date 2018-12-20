@@ -1,6 +1,16 @@
 sudo: false
 language: rust
-cache: cargo
+
+# Recommended caching strategy from https://levans.fr/rust_travis_cache.html
+# Need to cache the whole `.cargo` directory to keep .crates.toml for
+# cargo-update to work
+cache:
+  directories:
+    - /home/travis/.cargo
+
+# But don't cache the cargo registry
+before_cache:
+  - rm -rf /home/travis/.cargo/registry
 
 rust:
   - stable
@@ -11,6 +21,9 @@ matrix:
     - rust: beta
     - rust: nightly
   fast_finish: true
+
+before_script:
+  - rustup component add rustfmt
 
 script: |
   cargo fmt --verbose -- --check &&
