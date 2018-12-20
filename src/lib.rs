@@ -1,7 +1,6 @@
 #![forbid(unsafe_code)]
 
 mod core_tree;
-pub mod error;
 pub mod iter;
 pub mod node;
 mod slab;

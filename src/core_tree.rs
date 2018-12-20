@@ -1,4 +1,3 @@
-use crate::error::NodeIdError;
 use crate::node::Node;
 use crate::slab;
 use crate::NodeId;
@@ -38,16 +37,14 @@ impl<T> CoreTree<T> {
         node.data
     }
 
-    pub(crate) fn get(&self, node_id: NodeId) -> Result<&Node<T>, NodeIdError> {
+    pub(crate) fn get(&self, node_id: NodeId) -> Option<&Node<T>> {
         self.validate_node_id(node_id)?;
-        self.slab.get(node_id.index).ok_or(NodeIdError::BadNodeId)
+        self.slab.get(node_id.index)
     }
 
-    pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Result<&mut Node<T>, NodeIdError> {
+    pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Option<&mut Node<T>> {
         self.validate_node_id(node_id)?;
-        self.slab
-            .get_mut(node_id.index)
-            .ok_or(NodeIdError::BadNodeId)
+        self.slab.get_mut(node_id.index)
     }
 
     fn new_node_id(&self, index: slab::Index) -> NodeId {
@@ -57,11 +54,12 @@ impl<T> CoreTree<T> {
         }
     }
 
-    fn validate_node_id(&self, node_id: NodeId) -> Result<(), NodeIdError> {
+    // todo: not sure if I like this or not
+    fn validate_node_id(&self, node_id: NodeId) -> Option<NodeId> {
         if node_id.tree_id != self.id {
-            return Err(NodeIdError::WrongTree);
+            return None;
         }
-        Ok(())
+        Some(node_id)
     }
 }
 
@@ -131,7 +129,6 @@ mod tests {
 
         let result = tree.get(id);
 
-        assert!(result.is_err());
-        assert_eq!(result.err().unwrap(), NodeIdError::WrongTree);
+        assert!(result.is_none());
     }
 }
