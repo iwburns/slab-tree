@@ -149,7 +149,7 @@ impl<'a, T: 'a> NodeMut<'a, T> {
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_mut_tests {
-    use tree::Tree;
+    use crate::tree::Tree;
 
     #[test]
     fn node_id() {

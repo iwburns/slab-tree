@@ -199,7 +199,7 @@ impl<'a, T> NodeRef<'a, T> {
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_ref_tests {
-    use tree::Tree;
+    use crate::tree::Tree;
 
     #[test]
     fn data() {
