@@ -1,6 +1,6 @@
-use node::Node;
-use tree::Tree;
-use NodeId;
+use crate::node::Node;
+use crate::tree::Tree;
+use crate::NodeId;
 
 ///
 /// A mutable reference to a given `Node`'s data and its relatives.

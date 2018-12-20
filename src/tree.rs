@@ -1,7 +1,7 @@
-use core_tree::CoreTree;
-use error::NodeIdError;
-use node::*;
-use NodeId;
+use crate::core_tree::CoreTree;
+use crate::error::NodeIdError;
+use crate::node::*;
+use crate::NodeId;
 
 ///
 /// A tree structure containing `Node`s.
