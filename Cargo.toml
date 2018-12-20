@@ -9,6 +9,7 @@ readme = "README.md"
 keywords = ["tree", "slab", "slab-tree"]
 categories = ["data-structures"]
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 snowflake = "1.3.0"
