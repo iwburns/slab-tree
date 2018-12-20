@@ -1,8 +1,8 @@
-use node::*;
-use tree::Tree;
-use NodeId;
+use crate::node::*;
+use crate::tree::Tree;
+use crate::NodeId;
 
-pub struct Ancestors<'a, T: 'a> {
+pub struct Ancestors<'a, T> {
     node_id: Option<NodeId>,
     tree: &'a Tree<T>,
 }
@@ -27,7 +27,7 @@ impl<'a, T> Iterator for Ancestors<'a, T> {
     }
 }
 
-pub struct NextSiblings<'a, T: 'a> {
+pub struct NextSiblings<'a, T> {
     node_id: Option<NodeId>,
     tree: &'a Tree<T>,
 }

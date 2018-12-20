@@ -1,7 +1,5 @@
 #![forbid(unsafe_code)]
 
-extern crate snowflake;
-
 mod core_tree;
 pub mod error;
 pub mod iter;
@@ -9,12 +7,12 @@ pub mod node;
 mod slab;
 pub mod tree;
 
-pub use iter::Ancestors;
-pub use iter::NextSiblings;
-pub use node::NodeMut;
-pub use node::NodeRef;
+pub use crate::iter::Ancestors;
+pub use crate::iter::NextSiblings;
+pub use crate::node::NodeMut;
+pub use crate::node::NodeRef;
+pub use crate::tree::Tree;
 use snowflake::ProcessUniqueId;
-pub use tree::Tree;
 
 ///
 /// An identifier used to differentiate between Nodes and tie

@@ -1,13 +1,13 @@
-use iter::Ancestors;
-use iter::NextSiblings;
-use node::Node;
-use tree::Tree;
-use NodeId;
+use crate::iter::Ancestors;
+use crate::iter::NextSiblings;
+use crate::node::Node;
+use crate::tree::Tree;
+use crate::NodeId;
 
 ///
 /// An immutable reference to a given `Node`'s data and its relatives.
 ///
-pub struct NodeRef<'a, T: 'a> {
+pub struct NodeRef<'a, T> {
     pub(crate) node_id: NodeId,
     pub(crate) tree: &'a Tree<T>,
 }
@@ -199,7 +199,7 @@ impl<'a, T> NodeRef<'a, T> {
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_ref_tests {
-    use tree::Tree;
+    use crate::tree::Tree;
 
     #[test]
     fn data() {
@@ -252,12 +252,9 @@ mod node_ref_tests {
     #[test]
     fn ancestors() {
         let mut tree = Tree::new(1);
-        let node_id;
-        {
-            let mut root_mut = tree.root_mut();
-            node_id = root_mut.append(2).append(3).append(4).append(5).node_id();
-        }
-        let tree = tree;
+
+        let mut root_mut = tree.root_mut();
+        let node_id = root_mut.append(2).append(3).append(4).append(5).node_id();
 
         let values = [4, 3, 2, 1];
 
@@ -270,14 +267,12 @@ mod node_ref_tests {
     #[test]
     fn children() {
         let mut tree = Tree::new(1);
-        {
-            let mut root_mut = tree.root_mut();
-            root_mut.append(2);
-            root_mut.append(3);
-            root_mut.append(4);
-            root_mut.append(5);
-        }
-        let tree = tree;
+
+        let mut root_mut = tree.root_mut();
+        root_mut.append(2);
+        root_mut.append(3);
+        root_mut.append(4);
+        root_mut.append(5);
 
         let values = [2, 3, 4, 5];
         let root = tree.root();

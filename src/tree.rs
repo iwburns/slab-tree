@@ -1,7 +1,7 @@
-use core_tree::CoreTree;
-use error::NodeIdError;
-use node::*;
-use NodeId;
+use crate::core_tree::CoreTree;
+use crate::error::NodeIdError;
+use crate::node::*;
+use crate::NodeId;
 
 ///
 /// A tree structure containing `Node`s.
@@ -115,9 +115,7 @@ impl<T> Tree<T> {
     /// ```
     ///
     pub fn root_mut(&mut self) -> NodeMut<T> {
-        // NOTE: should be able to simplify with NLL
-        let node_id = self.root_id;
-        self.new_node_mut(node_id)
+        self.new_node_mut(self.root_id)
     }
 
     ///
