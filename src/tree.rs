@@ -115,9 +115,7 @@ impl<T> Tree<T> {
     /// ```
     ///
     pub fn root_mut(&mut self) -> NodeMut<T> {
-        // NOTE: should be able to simplify with NLL
-        let node_id = self.root_id;
-        self.new_node_mut(node_id)
+        self.new_node_mut(self.root_id)
     }
 
     ///
