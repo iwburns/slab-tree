@@ -31,10 +31,8 @@ impl<T> CoreTree<T> {
         self.new_node_id(key)
     }
 
-    // todo: return an Option<T> here instead
-    pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
-        let node = self.slab.remove(node_id.index).expect("Invalid NodeId");
-        node.data
+    pub(crate) fn remove(&mut self, node_id: NodeId) -> Option<T> {
+        self.slab.remove(node_id.index).map(|node| node.data)
     }
 
     pub(crate) fn get(&self, node_id: NodeId) -> Option<&Node<T>> {
@@ -94,6 +92,9 @@ mod tests {
         assert_eq!(tree.get(id).unwrap().data, 1);
 
         let one = tree.remove(id);
+        assert!(one.is_some());
+
+        let one = one.unwrap();
         assert_eq!(one, 1);
     }
 

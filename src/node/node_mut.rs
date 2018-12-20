@@ -115,7 +115,7 @@ impl<'a, T> NodeMut<'a, T> {
             self.tree.set_next_siblings_prev_sibling(first_id, None);
         }
 
-        Some(self.tree.core_tree.remove(first_id))
+        self.tree.core_tree.remove(first_id)
     }
 
     pub fn remove_last(&mut self) -> Option<T> {
@@ -134,7 +134,7 @@ impl<'a, T> NodeMut<'a, T> {
             self.tree.set_prev_siblings_next_sibling(last_id, None);
         }
 
-        Some(self.tree.core_tree.remove(last_id))
+        self.tree.core_tree.remove(last_id)
     }
 
     fn get_self_as_node(&self) -> &Node<T> {
