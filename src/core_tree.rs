@@ -32,17 +32,19 @@ impl<T> CoreTree<T> {
     }
 
     pub(crate) fn remove(&mut self, node_id: NodeId) -> Option<T> {
-        self.slab.remove(node_id.index).map(|node| node.data)
+        self.filter_by_tree_id(node_id)
+            .and_then(|id| self.slab.remove(id.index))
+            .map(|node| node.data)
     }
 
     pub(crate) fn get(&self, node_id: NodeId) -> Option<&Node<T>> {
-        self.validate_node_id(node_id)?;
-        self.slab.get(node_id.index)
+        self.filter_by_tree_id(node_id)
+            .and_then(|id| self.slab.get(id.index))
     }
 
     pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Option<&mut Node<T>> {
-        self.validate_node_id(node_id)?;
-        self.slab.get_mut(node_id.index)
+        self.filter_by_tree_id(node_id)
+            .and_then(move |id| self.slab.get_mut(id.index))
     }
 
     fn new_node_id(&self, index: slab::Index) -> NodeId {
@@ -52,8 +54,7 @@ impl<T> CoreTree<T> {
         }
     }
 
-    // todo: not sure if I like this or not
-    fn validate_node_id(&self, node_id: NodeId) -> Option<NodeId> {
+    fn filter_by_tree_id(&self, node_id: NodeId) -> Option<NodeId> {
         if node_id.tree_id != self.id {
             return None;
         }
