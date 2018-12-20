@@ -1,6 +1,7 @@
 # `slab_tree`
 
 [![Build Status](https://travis-ci.org/iwburns/slab-tree.svg?branch=master)](https://travis-ci.org/iwburns/slab-tree)
+[![](https://tokei.rs/b1/github/iwburns/slab-tree)](https://github.com/iwburns/slab-tree)
 
 A vec-backed tree structure with tree-specific generational indexes.
 
