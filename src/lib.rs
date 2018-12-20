@@ -11,8 +11,8 @@ pub use crate::iter::Ancestors;
 pub use crate::iter::NextSiblings;
 pub use crate::node::NodeMut;
 pub use crate::node::NodeRef;
-use snowflake::ProcessUniqueId;
 pub use crate::tree::Tree;
+use snowflake::ProcessUniqueId;
 
 ///
 /// An identifier used to differentiate between Nodes and tie

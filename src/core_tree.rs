@@ -1,8 +1,8 @@
 use crate::error::NodeIdError;
 use crate::node::Node;
 use crate::slab;
-use snowflake::ProcessUniqueId;
 use crate::NodeId;
+use snowflake::ProcessUniqueId;
 
 ///
 /// A wrapper around a Slab containing Node<T> values.
