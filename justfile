@@ -29,4 +29,4 @@
 @install-dev-deps:
     rustup install nightly
     rustup update nightly
-    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo +nightly install cargo-tarpaulin
+    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo +nightly install cargo-tarpaulin --force
