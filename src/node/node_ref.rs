@@ -8,11 +8,15 @@ use crate::NodeId;
 /// An immutable reference to a given `Node`'s data and its relatives.
 ///
 pub struct NodeRef<'a, T> {
-    pub(crate) node_id: NodeId,
-    pub(crate) tree: &'a Tree<T>,
+    node_id: NodeId,
+    tree: &'a Tree<T>,
 }
 
 impl<'a, T> NodeRef<'a, T> {
+    pub(crate) fn new(node_id: NodeId, tree: &'a Tree<T>) -> NodeRef<T> {
+        NodeRef { node_id, tree }
+    }
+
     ///
     /// Returns a reference to the data contained by the given `Node`.
     ///
@@ -50,7 +54,7 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .parent
-            .map(|id| self.tree.new_node_ref(id))
+            .map(|id| NodeRef::new(id, self.tree))
     }
 
     ///
@@ -70,7 +74,7 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .prev_sibling
-            .map(|id| self.tree.new_node_ref(id))
+            .map(|id| NodeRef::new(id, self.tree))
     }
 
     ///
@@ -90,7 +94,7 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .next_sibling
-            .map(|id| self.tree.new_node_ref(id))
+            .map(|id| NodeRef::new(id, self.tree))
     }
 
     ///
@@ -110,7 +114,7 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .first_child
-            .map(|id| self.tree.new_node_ref(id))
+            .map(|id| NodeRef::new(id, self.tree))
     }
 
     ///
@@ -130,7 +134,7 @@ impl<'a, T> NodeRef<'a, T> {
         self.get_self_as_node()
             .relatives
             .last_child
-            .map(|id| self.tree.new_node_ref(id))
+            .map(|id| NodeRef::new(id, self.tree))
     }
 
     ///

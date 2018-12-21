@@ -7,11 +7,15 @@ use crate::NodeId;
 ///
 #[derive(Debug, PartialEq)]
 pub struct NodeMut<'a, T> {
-    pub(crate) node_id: NodeId,
-    pub(crate) tree: &'a mut Tree<T>,
+    node_id: NodeId,
+    tree: &'a mut Tree<T>,
 }
 
 impl<'a, T> NodeMut<'a, T> {
+    pub(crate) fn new(node_id: NodeId, tree: &mut Tree<T>) -> NodeMut<T> {
+        NodeMut { node_id, tree }
+    }
+
     pub fn node_id(&self) -> NodeId {
         self.node_id
     }
@@ -28,35 +32,35 @@ impl<'a, T> NodeMut<'a, T> {
         self.get_self_as_node()
             .relatives
             .parent
-            .map(move |id| self.tree.new_node_mut(id))
+            .map(move |id| NodeMut::new(id, self.tree))
     }
 
     pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
             .prev_sibling
-            .map(move |id| self.tree.new_node_mut(id))
+            .map(move |id| NodeMut::new(id, self.tree))
     }
 
     pub fn next_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
             .next_sibling
-            .map(move |id| self.tree.new_node_mut(id))
+            .map(move |id| NodeMut::new(id, self.tree))
     }
 
     pub fn first_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
             .first_child
-            .map(move |id| self.tree.new_node_mut(id))
+            .map(move |id| NodeMut::new(id, self.tree))
     }
 
     pub fn last_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
             .last_child
-            .map(move |id| self.tree.new_node_mut(id))
+            .map(move |id| NodeMut::new(id, self.tree))
     }
 
     pub fn append(&mut self, data: T) -> NodeMut<T> {
@@ -76,7 +80,7 @@ impl<'a, T> NodeMut<'a, T> {
             self.tree.set_next_sibling(node_id, Some(new_id));
         }
 
-        self.tree.new_node_mut(new_id)
+        NodeMut::new(new_id, self.tree)
     }
 
     pub fn prepend(&mut self, data: T) -> NodeMut<T> {
@@ -96,7 +100,7 @@ impl<'a, T> NodeMut<'a, T> {
             self.tree.set_prev_sibling(node_id, Some(new_id));
         }
 
-        self.tree.new_node_mut(new_id)
+        NodeMut::new(new_id, self.tree)
     }
 
     pub fn remove_first(&mut self) -> Option<T> {

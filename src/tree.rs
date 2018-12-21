@@ -173,18 +173,12 @@ impl<T> Tree<T> {
         self.core_tree.get_mut(node_id)
     }
 
-    pub(crate) fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
-        NodeRef {
-            node_id,
-            tree: self,
-        }
+    fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
+        NodeRef::new(node_id, self)
     }
 
-    pub(crate) fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
-        NodeMut {
-            node_id,
-            tree: self,
-        }
+    fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
+        NodeMut::new(node_id, self)
     }
 
     pub(crate) fn set_prev_siblings_next_sibling(
