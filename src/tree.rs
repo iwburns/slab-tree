@@ -1,5 +1,4 @@
 use crate::core_tree::CoreTree;
-use crate::error::NodeIdError;
 use crate::node::*;
 use crate::NodeId;
 
@@ -75,7 +74,7 @@ impl<T> Tree<T> {
     ///
     /// let root_id = tree.root_id();
     ///
-    /// assert_eq!(tree.get(root_id).ok().unwrap().data(), &1);
+    /// assert_eq!(tree.get(root_id).unwrap().data(), &1);
     /// ```
     ///
     pub fn root_id(&self) -> NodeId {
@@ -120,8 +119,8 @@ impl<T> Tree<T> {
 
     ///
     /// Returns the `NodeRef` pointing to the `Node` that the given `NodeId` identifies.  If the
-    /// `NodeId` in question points to nothing (or belongs to a different `Tree`) an `Err`-value
-    /// will be returned; otherwise, an `Ok`-value will be returned.
+    /// `NodeId` in question points to nothing (or belongs to a different `Tree`) a `None`-value
+    /// will be returned; otherwise, a `Some`-value will be returned.
     ///
     /// ```
     /// use slab_tree::tree::Tree;
@@ -130,21 +129,21 @@ impl<T> Tree<T> {
     /// let root_id = tree.root_id();
     ///
     /// let root = tree.get(root_id);
-    /// assert!(root.is_ok());
+    /// assert!(root.is_some());
     ///
-    /// let root = root.ok().unwrap();
+    /// let root = root.unwrap();
     /// assert_eq!(root.data(), &1);
     /// ```
     ///
-    pub fn get(&self, node_id: NodeId) -> Result<NodeRef<T>, NodeIdError> {
+    pub fn get(&self, node_id: NodeId) -> Option<NodeRef<T>> {
         let _ = self.core_tree.get(node_id)?;
-        Ok(self.new_node_ref(node_id))
+        Some(self.new_node_ref(node_id))
     }
 
     ///
     /// Returns the `NodeMut` pointing to the `Node` that the given `NodeId` identifies.  If the
-    /// `NodeId` in question points to nothing (or belongs to a different `Tree`) an `Err`-value
-    /// will be returned; otherwise, an `Ok`-value will be returned.
+    /// `NodeId` in question points to nothing (or belongs to a different `Tree`) a `None`-value
+    /// will be returned; otherwise, a `Some`-value will be returned.
     ///
     /// ```
     /// use slab_tree::tree::Tree;
@@ -153,39 +152,33 @@ impl<T> Tree<T> {
     /// let root_id = tree.root_id();
     ///
     /// let root = tree.get_mut(root_id);
-    /// assert!(root.is_ok());
+    /// assert!(root.is_some());
     ///
-    /// let mut root = root.ok().unwrap();
+    /// let mut root = root.unwrap();
     ///
     /// *root.data() = 2;
     /// assert_eq!(root.data(), &mut 2);
     /// ```
     ///
-    pub fn get_mut(&mut self, node_id: NodeId) -> Result<NodeMut<T>, NodeIdError> {
+    pub fn get_mut(&mut self, node_id: NodeId) -> Option<NodeMut<T>> {
         let _ = self.core_tree.get_mut(node_id)?;
-        Ok(self.new_node_mut(node_id))
+        Some(self.new_node_mut(node_id))
     }
 
-    pub(crate) fn get_node(&self, node_id: NodeId) -> Result<&Node<T>, NodeIdError> {
+    pub(crate) fn get_node(&self, node_id: NodeId) -> Option<&Node<T>> {
         self.core_tree.get(node_id)
     }
 
-    pub(crate) fn get_node_mut(&mut self, node_id: NodeId) -> Result<&mut Node<T>, NodeIdError> {
+    pub(crate) fn get_node_mut(&mut self, node_id: NodeId) -> Option<&mut Node<T>> {
         self.core_tree.get_mut(node_id)
     }
 
-    pub(crate) fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
-        NodeRef {
-            node_id,
-            tree: self,
-        }
+    fn new_node_ref(&self, node_id: NodeId) -> NodeRef<T> {
+        NodeRef::new(node_id, self)
     }
 
-    pub(crate) fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
-        NodeMut {
-            node_id,
-            tree: self,
-        }
+    fn new_node_mut(&mut self, node_id: NodeId) -> NodeMut<T> {
+        NodeMut::new(node_id, self)
     }
 
     pub(crate) fn set_prev_siblings_next_sibling(
@@ -209,7 +202,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_parent(&mut self, node_id: NodeId, parent_id: Option<NodeId>) {
-        if let Ok(node) = self.get_node_mut(node_id) {
+        if let Some(node) = self.get_node_mut(node_id) {
             node.relatives.parent = parent_id;
         } else {
             unreachable!()
@@ -217,7 +210,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_prev_sibling(&mut self, node_id: NodeId, prev_sibling: Option<NodeId>) {
-        if let Ok(node) = self.get_node_mut(node_id) {
+        if let Some(node) = self.get_node_mut(node_id) {
             node.relatives.prev_sibling = prev_sibling;
         } else {
             unreachable!()
@@ -225,7 +218,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_next_sibling(&mut self, node_id: NodeId, next_sibling: Option<NodeId>) {
-        if let Ok(node) = self.get_node_mut(node_id) {
+        if let Some(node) = self.get_node_mut(node_id) {
             node.relatives.next_sibling = next_sibling;
         } else {
             unreachable!()
@@ -233,7 +226,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_first_child(&mut self, node_id: NodeId, first_child: Option<NodeId>) {
-        if let Ok(node) = self.get_node_mut(node_id) {
+        if let Some(node) = self.get_node_mut(node_id) {
             node.relatives.first_child = first_child;
         } else {
             unreachable!()
@@ -241,7 +234,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn set_last_child(&mut self, node_id: NodeId, last_child: Option<NodeId>) {
-        if let Ok(node) = self.get_node_mut(node_id) {
+        if let Some(node) = self.get_node_mut(node_id) {
             node.relatives.last_child = last_child;
         } else {
             unreachable!()
@@ -249,7 +242,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn get_node_prev_sibling_id(&self, node_id: NodeId) -> Option<NodeId> {
-        if let Ok(node) = self.get_node(node_id) {
+        if let Some(node) = self.get_node(node_id) {
             node.relatives.prev_sibling
         } else {
             unreachable!()
@@ -257,7 +250,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn get_node_next_sibling_id(&self, node_id: NodeId) -> Option<NodeId> {
-        if let Ok(node) = self.get_node(node_id) {
+        if let Some(node) = self.get_node(node_id) {
             node.relatives.next_sibling
         } else {
             unreachable!()
@@ -265,7 +258,7 @@ impl<T> Tree<T> {
     }
 
     pub(crate) fn get_node_relatives(&self, node_id: NodeId) -> Relatives {
-        if let Ok(node) = self.get_node(node_id) {
+        if let Some(node) = self.get_node(node_id) {
             node.relatives
         } else {
             unreachable!()
@@ -291,7 +284,7 @@ mod tree_tests {
     fn root_id() {
         let tree = Tree::new(1);
         let root_id = tree.root_id();
-        let root = tree.get(root_id).ok().unwrap();
+        let root = tree.get(root_id).unwrap();
         assert_eq!(root.data(), &1);
     }
 
@@ -317,9 +310,9 @@ mod tree_tests {
 
         let root_id = tree.root_id();
         let root = tree.get(root_id);
-        assert!(root.is_ok());
+        assert!(root.is_some());
 
-        let root = root.ok().unwrap();
+        let root = root.unwrap();
         assert_eq!(root.data(), &1);
     }
 
@@ -329,9 +322,9 @@ mod tree_tests {
 
         let root_id = tree.root_id();
         let root = tree.get_mut(root_id);
-        assert!(root.is_ok());
+        assert!(root.is_some());
 
-        let mut root = root.ok().unwrap();
+        let mut root = root.unwrap();
         assert_eq!(root.data(), &mut 1);
 
         *root.data() = 2;
@@ -344,9 +337,9 @@ mod tree_tests {
 
         let root_id = tree.root_id();
         let root = tree.get_node(root_id);
-        assert!(root.is_ok());
+        assert!(root.is_some());
 
-        let root = root.ok().unwrap();
+        let root = root.unwrap();
         assert_eq!(root.data, 1);
     }
 
@@ -356,9 +349,9 @@ mod tree_tests {
 
         let root_id = tree.root_id();
         let root = tree.get_node_mut(root_id);
-        assert!(root.is_ok());
+        assert!(root.is_some());
 
-        let root = root.ok().unwrap();
+        let root = root.unwrap();
         assert_eq!(root.data, 1);
 
         root.data = 2;

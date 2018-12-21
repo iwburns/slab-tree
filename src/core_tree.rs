@@ -1,4 +1,3 @@
-use crate::error::NodeIdError;
 use crate::node::Node;
 use crate::slab;
 use crate::NodeId;
@@ -32,22 +31,20 @@ impl<T> CoreTree<T> {
         self.new_node_id(key)
     }
 
-    // todo: return an Option<T> here instead
-    pub(crate) fn remove(&mut self, node_id: NodeId) -> T {
-        let node = self.slab.remove(node_id.index).expect("Invalid NodeId");
-        node.data
+    pub(crate) fn remove(&mut self, node_id: NodeId) -> Option<T> {
+        self.filter_by_tree_id(node_id)
+            .and_then(|id| self.slab.remove(id.index))
+            .map(|node| node.data)
     }
 
-    pub(crate) fn get(&self, node_id: NodeId) -> Result<&Node<T>, NodeIdError> {
-        self.validate_node_id(node_id)?;
-        self.slab.get(node_id.index).ok_or(NodeIdError::BadNodeId)
+    pub(crate) fn get(&self, node_id: NodeId) -> Option<&Node<T>> {
+        self.filter_by_tree_id(node_id)
+            .and_then(|id| self.slab.get(id.index))
     }
 
-    pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Result<&mut Node<T>, NodeIdError> {
-        self.validate_node_id(node_id)?;
-        self.slab
-            .get_mut(node_id.index)
-            .ok_or(NodeIdError::BadNodeId)
+    pub(crate) fn get_mut(&mut self, node_id: NodeId) -> Option<&mut Node<T>> {
+        self.filter_by_tree_id(node_id)
+            .and_then(move |id| self.slab.get_mut(id.index))
     }
 
     fn new_node_id(&self, index: slab::Index) -> NodeId {
@@ -57,11 +54,11 @@ impl<T> CoreTree<T> {
         }
     }
 
-    fn validate_node_id(&self, node_id: NodeId) -> Result<(), NodeIdError> {
+    fn filter_by_tree_id(&self, node_id: NodeId) -> Option<NodeId> {
         if node_id.tree_id != self.id {
-            return Err(NodeIdError::WrongTree);
+            return None;
         }
-        Ok(())
+        Some(node_id)
     }
 }
 
@@ -96,6 +93,9 @@ mod tests {
         assert_eq!(tree.get(id).unwrap().data, 1);
 
         let one = tree.remove(id);
+        assert!(one.is_some());
+
+        let one = one.unwrap();
         assert_eq!(one, 1);
     }
 
@@ -131,7 +131,6 @@ mod tests {
 
         let result = tree.get(id);
 
-        assert!(result.is_err());
-        assert_eq!(result.err().unwrap(), NodeIdError::WrongTree);
+        assert!(result.is_none());
     }
 }
