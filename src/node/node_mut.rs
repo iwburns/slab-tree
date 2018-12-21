@@ -1,6 +1,9 @@
 use crate::node::Node;
+use crate::node::NodeRef;
 use crate::tree::Tree;
 use crate::NodeId;
+
+//todo: document this
 
 ///
 /// A mutable reference to a given `Node`'s data and its relatives.
@@ -141,6 +144,10 @@ impl<'a, T> NodeMut<'a, T> {
         self.tree.core_tree.remove(last_id)
     }
 
+    pub fn as_ref(&self) -> NodeRef<T> {
+        NodeRef::new(self.node_id, self.tree)
+    }
+
     fn get_self_as_node(&self) -> &Node<T> {
         if let Some(node) = self.tree.get_node(self.node_id) {
             &node
@@ -157,8 +164,9 @@ mod node_mut_tests {
 
     #[test]
     fn node_id() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let root_mut = tree.get_mut(root_id).unwrap();
         assert_eq!(root_id, root_mut.node_id());
@@ -166,8 +174,9 @@ mod node_mut_tests {
 
     #[test]
     fn data() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert_eq!(root_mut.data(), &mut 1);
@@ -178,48 +187,54 @@ mod node_mut_tests {
 
     #[test]
     fn parent() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert!(root_mut.parent().is_none());
     }
 
     #[test]
     fn prev_sibling() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert!(root_mut.prev_sibling().is_none());
     }
 
     #[test]
     fn next_sibling() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert!(root_mut.next_sibling().is_none());
     }
 
     #[test]
     fn first_child() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert!(root_mut.first_child().is_none());
     }
 
     #[test]
     fn last_child() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let mut root_mut = tree.get_mut(root_id).unwrap();
         assert!(root_mut.last_child().is_none());
     }
 
     #[test]
     fn append_no_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.append(2).node_id();
@@ -250,8 +265,9 @@ mod node_mut_tests {
 
     #[test]
     fn append_single_child_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.append(2).node_id();
@@ -296,8 +312,9 @@ mod node_mut_tests {
 
     #[test]
     fn append_two_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.append(2).node_id();
@@ -363,8 +380,9 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_no_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.prepend(2).node_id();
@@ -395,8 +413,9 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_single_child_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.prepend(2).node_id();
@@ -441,8 +460,9 @@ mod node_mut_tests {
 
     #[test]
     fn prepend_two_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let new_id = root_mut.prepend(2).node_id();
@@ -508,8 +528,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_no_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let first_child_data = root_mut.remove_first();
@@ -525,8 +546,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_single_child_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
@@ -543,8 +565,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_two_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
@@ -573,8 +596,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_first_three_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
@@ -614,8 +638,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_no_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let last_child_data = root_mut.remove_last();
@@ -631,8 +656,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_single_child_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
@@ -649,8 +675,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_two_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let node_id = root_mut.append(2).node_id();
@@ -679,8 +706,9 @@ mod node_mut_tests {
 
     #[test]
     fn remove_last_three_children_present() {
-        let mut tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         let node_id = root_mut.append(2).node_id();
