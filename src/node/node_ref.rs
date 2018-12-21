@@ -23,8 +23,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert_eq!(root.data(), &1);
     /// ```
@@ -44,8 +45,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.parent().is_none());
     /// ```
@@ -64,8 +66,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.prev_sibling().is_none());
     /// ```
@@ -84,8 +87,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.next_sibling().is_none());
     /// ```
@@ -104,8 +108,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.first_child().is_none());
     /// ```
@@ -124,8 +129,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.last_child().is_none());
     /// ```
@@ -144,9 +150,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = Tree::new(1);
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
     ///
-    /// let leaf_id = tree.root_mut()
+    /// let leaf_id = tree.root_mut().expect("root doesn't exist?")
     ///     .append(2)
     ///     .append(3)
     ///     .append(4)
@@ -171,14 +178,15 @@ impl<'a, T> NodeRef<'a, T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = Tree::new(1);
-    /// {
-    ///     let mut root = tree.root_mut();
-    ///     root.append(2);
-    ///     root.append(3);
-    ///     root.append(4);
-    /// }
-    /// let root = tree.root();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    ///
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    /// root.append(2);
+    /// root.append(3);
+    /// root.append(4);
+    ///
+    /// let root = root.as_ref();
     ///
     /// let values = [2, 3, 4];
     /// for (i, child) in root.children().enumerate() {
@@ -207,57 +215,64 @@ mod node_ref_tests {
 
     #[test]
     fn data() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert_eq!(root_ref.data(), &1);
     }
 
     #[test]
     fn parent() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert!(root_ref.parent().is_none());
     }
 
     #[test]
     fn prev_sibling() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert!(root_ref.prev_sibling().is_none());
     }
 
     #[test]
     fn next_sibling() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert!(root_ref.next_sibling().is_none());
     }
 
     #[test]
     fn first_child() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert!(root_ref.first_child().is_none());
     }
 
     #[test]
     fn last_child() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root_ref = tree.get(root_id).unwrap();
         assert!(root_ref.last_child().is_none());
     }
 
     #[test]
     fn ancestors() {
-        let mut tree = Tree::new(1);
+        let mut tree = Tree::new();
+        tree.set_root(1);
 
-        let mut root_mut = tree.root_mut();
+        let mut root_mut = tree.root_mut().expect("root doesn't exist");
         let node_id = root_mut.append(2).append(3).append(4).append(5).node_id();
 
         let values = [4, 3, 2, 1];
@@ -270,16 +285,17 @@ mod node_ref_tests {
 
     #[test]
     fn children() {
-        let mut tree = Tree::new(1);
+        let mut tree = Tree::new();
+        tree.set_root(1);
 
-        let mut root_mut = tree.root_mut();
-        root_mut.append(2);
-        root_mut.append(3);
-        root_mut.append(4);
-        root_mut.append(5);
+        let mut root = tree.root_mut().expect("root doesn't exist");
+        root.append(2);
+        root.append(3);
+        root.append(4);
+        root.append(5);
 
         let values = [2, 3, 4, 5];
-        let root = tree.root();
+        let root = root.as_ref();
 
         for (i, node_ref) in root.children().enumerate() {
             assert_eq!(node_ref.data(), &values[i]);

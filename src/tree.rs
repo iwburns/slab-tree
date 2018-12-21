@@ -3,48 +3,148 @@ use crate::node::*;
 use crate::NodeId;
 
 ///
+/// A `Tree` builder. Provides more control over how a `Tree` is created.
+///
+pub struct TreeBuilder<T> {
+    root: Option<T>,
+    capacity: Option<usize>,
+}
+
+impl<T> Default for TreeBuilder<T> {
+    fn default() -> Self {
+        TreeBuilder::new()
+    }
+}
+
+impl<T> TreeBuilder<T> {
+    ///
+    /// Creates a new `TreeBuilder` with the default settings.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let _tree_builder = TreeBuilder::new();
+    ///
+    /// # _tree_builder.with_root(1);
+    /// ```
+    ///
+    pub fn new() -> TreeBuilder<T> {
+        TreeBuilder {
+            root: None,
+            capacity: None,
+        }
+    }
+
+    ///
+    /// Sets the root `Node` of the `TreeBuilder`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let _tree_builder = TreeBuilder::new().with_root(1);
+    /// ```
+    ///
+    pub fn with_root(self, root: T) -> TreeBuilder<T> {
+        TreeBuilder {
+            root: Some(root),
+            capacity: self.capacity,
+        }
+    }
+
+    ///
+    /// Sets the capacity of the `TreeBuilder`.
+    ///
+    /// This can be used to pre-allocate space in the `Tree` if you know you'll be adding a large
+    /// number of `Node`s to the `Tree`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let _tree_builder = TreeBuilder::new().with_capacity(10);
+    ///
+    /// # _tree_builder.with_root(1);
+    /// ```
+    ///
+    pub fn with_capacity(self, capacity: usize) -> TreeBuilder<T> {
+        TreeBuilder {
+            root: self.root,
+            capacity: Some(capacity),
+        }
+    }
+
+    ///
+    /// Build a `Tree` based upon the current settings in the `TreeBuilder`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let _tree = TreeBuilder::new().with_root(1).with_capacity(10).build();
+    /// ```
+    ///
+    pub fn build(self) -> Tree<T> {
+        let capacity = self.capacity.unwrap_or(0);
+        let mut core_tree: CoreTree<T> = CoreTree::new(capacity);
+        let root_id = self.root.map(|val| core_tree.insert(val));
+
+        Tree { root_id, core_tree }
+    }
+}
+
+///
 /// A tree structure containing `Node`s.
 ///
 #[derive(Debug, PartialEq)]
 pub struct Tree<T> {
-    pub(crate) root_id: NodeId,
+    pub(crate) root_id: Option<NodeId>,
     pub(crate) core_tree: CoreTree<T>,
 }
 
 impl<T> Tree<T> {
     ///
-    /// Creates a new `Tree` with the given root value and a capacity of 1.
+    /// Creates a new `Tree` with a capacity of 0.
     ///
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
+    /// let tree: Tree<i32> = Tree::new();
     ///
-    /// # assert_eq!(tree.root().data(), &1);
-    /// # assert_eq!(tree.capacity(), 1);
+    /// # assert_eq!(tree.capacity(), 0);
     /// ```
     ///
-    pub fn new(root: T) -> Tree<T> {
-        Tree::new_with_capacity(root, 1)
+    pub fn new() -> Tree<T> {
+        TreeBuilder::new().build()
     }
 
+    //todo: write test for this
     ///
-    /// Creates a new `Tree` with the given root value and capacity.
+    /// Sets the "root" of the `Tree` to be `root`.
+    ///
+    /// If there is already a "root" node in the `Tree`, that node is shifted down and the new
+    /// one takes its place.
     ///
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new_with_capacity(1, 2);
+    /// let mut tree = Tree::new();
     ///
-    /// # assert_eq!(tree.root().data(), &1);
-    /// # assert_eq!(tree.capacity(), 2);
+    /// let root_id = tree.set_root(1);
+    ///
+    /// assert_eq!(tree.root_id().unwrap(), root_id);
     /// ```
     ///
-    pub fn new_with_capacity(root: T, capacity: usize) -> Tree<T> {
-        let mut core_tree: CoreTree<T> = CoreTree::new(capacity);
-        let root_id = core_tree.insert(root);
+    pub fn set_root(&mut self, root: T) -> NodeId {
+        let old_root_id = self.root_id.take();
+        let new_root_id = self.core_tree.insert(root);
 
-        Tree { root_id, core_tree }
+        self.root_id = Some(new_root_id);
+
+        self.set_first_child(new_root_id, old_root_id);
+
+        if let Some(node_id) = old_root_id {
+            self.set_parent(node_id, self.root_id);
+        }
+
+        new_root_id
     }
 
     ///
@@ -54,10 +154,9 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new_with_capacity(1, 2);
+    /// let tree: Tree<i32> = Tree::new();
     ///
-    /// # assert_eq!(tree.root().data(), &1);
-    /// assert_eq!(tree.capacity(), 2);
+    /// assert_eq!(tree.capacity(), 0);
     /// ```
     ///
     pub fn capacity(&self) -> usize {
@@ -70,14 +169,15 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
     ///
-    /// let root_id = tree.root_id();
+    /// let root_id = tree.root_id().expect("root doesn't exist?");
     ///
     /// assert_eq!(tree.get(root_id).unwrap().data(), &1);
     /// ```
     ///
-    pub fn root_id(&self) -> NodeId {
+    pub fn root_id(&self) -> Option<NodeId> {
         self.root_id
     }
 
@@ -87,15 +187,16 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
     ///
-    /// let root = tree.root();
+    /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert_eq!(root.data(), &1);
     /// ```
     ///
-    pub fn root(&self) -> NodeRef<T> {
-        self.new_node_ref(self.root_id)
+    pub fn root(&self) -> Option<NodeRef<T>> {
+        self.root_id.map(|id| self.new_node_ref(id))
     }
 
     ///
@@ -104,17 +205,18 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = Tree::new(1);
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
     ///
-    /// let mut root = tree.root_mut();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
     /// assert_eq!(root.data(), &mut 1);
     ///
     /// *root.data() = 2;
     /// assert_eq!(root.data(), &mut 2);
     /// ```
     ///
-    pub fn root_mut(&mut self) -> NodeMut<T> {
-        self.new_node_mut(self.root_id)
+    pub fn root_mut(&mut self) -> Option<NodeMut<T>> {
+        self.root_id.map(move |id| self.new_node_mut(id))
     }
 
     ///
@@ -125,8 +227,9 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let tree = Tree::new(1);
-    /// let root_id = tree.root_id();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root_id = tree.root_id().expect("root doesn't exist?");
     ///
     /// let root = tree.get(root_id);
     /// assert!(root.is_some());
@@ -148,8 +251,9 @@ impl<T> Tree<T> {
     /// ```
     /// use slab_tree::tree::Tree;
     ///
-    /// let mut tree = Tree::new(1);
-    /// let root_id = tree.root_id();
+    /// let mut tree = Tree::new();
+    /// tree.set_root(1);
+    /// let root_id = tree.root_id().expect("root doesn't exist?");
     ///
     /// let root = tree.get_mut(root_id);
     /// assert!(root.is_some());
@@ -266,6 +370,12 @@ impl<T> Tree<T> {
     }
 }
 
+impl<T> Default for Tree<T> {
+    fn default() -> Self {
+        TreeBuilder::new().build()
+    }
+}
+
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod tree_tests {
@@ -273,42 +383,41 @@ mod tree_tests {
 
     #[test]
     fn capacity() {
-        let tree = Tree::new(1);
-        assert_eq!(tree.capacity(), 1);
-
-        let tree = Tree::new_with_capacity(1, 5);
+        let tree = TreeBuilder::new().with_root(1).with_capacity(5).build();
         assert_eq!(tree.capacity(), 5);
     }
 
     #[test]
     fn root_id() {
-        let tree = Tree::new(1);
-        let root_id = tree.root_id();
+        let tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get(root_id).unwrap();
         assert_eq!(root.data(), &1);
     }
 
     #[test]
     fn root() {
-        let tree = Tree::new(1);
-        let root = tree.root();
+        let tree = TreeBuilder::new().with_root(1).build();
+        let root = tree.root().expect("root doesn't exist?");
         assert_eq!(root.data(), &1);
     }
 
     #[test]
     fn root_mut() {
-        let mut tree = Tree::new(1);
-        assert_eq!(tree.root_mut().data(), &mut 1);
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let mut root = tree.root_mut().expect("root doesn't exist?");
 
-        *tree.root_mut().data() = 2;
-        assert_eq!(tree.root_mut().data(), &mut 2);
+        assert_eq!(root.data(), &mut 1);
+
+        *root.data() = 2;
+        assert_eq!(root.data(), &mut 2);
     }
 
     #[test]
     fn get() {
-        let tree = Tree::new(1);
+        let tree = TreeBuilder::new().with_root(1).build();
 
-        let root_id = tree.root_id();
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get(root_id);
         assert!(root.is_some());
 
@@ -318,9 +427,9 @@ mod tree_tests {
 
     #[test]
     fn get_mut() {
-        let mut tree = Tree::new(1);
+        let mut tree = TreeBuilder::new().with_root(1).build();
 
-        let root_id = tree.root_id();
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get_mut(root_id);
         assert!(root.is_some());
 
@@ -333,9 +442,9 @@ mod tree_tests {
 
     #[test]
     fn get_node() {
-        let tree = Tree::new(1);
+        let tree = TreeBuilder::new().with_root(1).build();
 
-        let root_id = tree.root_id();
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get_node(root_id);
         assert!(root.is_some());
 
@@ -345,9 +454,9 @@ mod tree_tests {
 
     #[test]
     fn get_node_mut() {
-        let mut tree = Tree::new(1);
+        let mut tree = TreeBuilder::new().with_root(1).build();
 
-        let root_id = tree.root_id();
+        let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get_node_mut(root_id);
         assert!(root.is_some());
 
