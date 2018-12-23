@@ -1,4 +1,4 @@
-# `slab_tree`
+# slab_tree
 
 [![Build Status](https://travis-ci.org/iwburns/slab-tree.svg?branch=master)](https://travis-ci.org/iwburns/slab-tree)
 [![](https://tokei.rs/b1/github/iwburns/slab-tree)](https://github.com/iwburns/slab-tree)
@@ -28,8 +28,6 @@ This crate uses `#![forbid(unsafe_code)]` to prevent any and all `unsafe` code u
 
 ## Example Usage
 ```rust
-extern crate slab_tree;
-
 use slab_tree::*;
 
 fn main() {
@@ -42,9 +40,9 @@ fn main() {
     //              |
     //            "cool"
 
-    let mut tree = Tree::new("hello");
-    let root_id = tree.root_id();
-    let mut hello = tree.get_mut(root_id).ok().unwrap();
+    let mut tree = TreeBuilder::new().with_root("hello").build();
+    let root_id = tree.root_id().expect("root doesn't exist?");
+    let mut hello = tree.get_mut(root_id).unwrap();
 
     hello.append("world");
     hello

@@ -3,8 +3,6 @@ use crate::node::NodeRef;
 use crate::tree::Tree;
 use crate::NodeId;
 
-//todo: document this
-
 ///
 /// A mutable reference to a given `Node`'s data and its relatives.
 ///
@@ -19,10 +17,43 @@ impl<'a, T> NodeMut<'a, T> {
         NodeMut { node_id, tree }
     }
 
+    ///
+    /// Returns the `NodeId` that identifies this `Node` in the tree.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let root_id = tree.root_id().expect("root doesn't exist?");
+    /// let root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// let root_id_again = root.node_id();
+    ///
+    /// assert_eq!(root_id_again, root_id);
+    /// ```
+    ///
     pub fn node_id(&self) -> NodeId {
         self.node_id
     }
 
+    ///
+    /// Returns a mutable reference to the data contained by the given `Node`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// let data = root.data();
+    ///
+    /// assert_eq!(data, &mut 1);
+    ///
+    /// *data = 3;
+    ///
+    /// assert_eq!(data, &mut 3);
+    /// ```
+    ///
     pub fn data(&mut self) -> &mut T {
         if let Some(node) = self.tree.get_node_mut(self.node_id) {
             &mut node.data
@@ -31,6 +62,19 @@ impl<'a, T> NodeMut<'a, T> {
         }
     }
 
+    ///
+    /// Returns a `NodeMut` pointing to this `Node`'s parent.  Returns a `Some`-value containing
+    /// the `NodeMut` if this `Node` has a parent; otherwise returns a `None`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// assert!(root.parent().is_none());
+    /// ```
+    ///
     pub fn parent(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
@@ -38,6 +82,19 @@ impl<'a, T> NodeMut<'a, T> {
             .map(move |id| NodeMut::new(id, self.tree))
     }
 
+    ///
+    /// Returns a `NodeMut` pointing to this `Node`'s previous sibling.  Returns a `Some`-value
+    /// containing the `NodeMut` if this `Node` has a previous sibling; otherwise returns a `None`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// assert!(root.prev_sibling().is_none());
+    /// ```
+    ///
     pub fn prev_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
@@ -45,6 +102,19 @@ impl<'a, T> NodeMut<'a, T> {
             .map(move |id| NodeMut::new(id, self.tree))
     }
 
+    ///
+    /// Returns a `NodeMut` pointing to this `Node`'s next sibling.  Returns a `Some`-value
+    /// containing the `NodeMut` if this `Node` has a next sibling; otherwise returns a `None`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// assert!(root.next_sibling().is_none());
+    /// ```
+    ///
     pub fn next_sibling(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
@@ -52,6 +122,19 @@ impl<'a, T> NodeMut<'a, T> {
             .map(move |id| NodeMut::new(id, self.tree))
     }
 
+    ///
+    /// Returns a `NodeMut` pointing to this `Node`'s first child.  Returns a `Some`-value
+    /// containing the `NodeMut` if this `Node` has a first child; otherwise returns a `None`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// assert!(root.first_child().is_none());
+    /// ```
+    ///
     pub fn first_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
@@ -59,6 +142,19 @@ impl<'a, T> NodeMut<'a, T> {
             .map(move |id| NodeMut::new(id, self.tree))
     }
 
+    ///
+    /// Returns a `NodeMut` pointing to this `Node`'s last child.  Returns a `Some`-value
+    /// containing the `NodeMut` if this `Node` has a last child; otherwise returns a `None`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// assert!(root.last_child().is_none());
+    /// ```
+    ///
     pub fn last_child(&mut self) -> Option<NodeMut<T>> {
         self.get_self_as_node()
             .relatives
@@ -66,6 +162,30 @@ impl<'a, T> NodeMut<'a, T> {
             .map(move |id| NodeMut::new(id, self.tree))
     }
 
+    ///
+    /// Appends a new `Node` as this `Node`'s last child (and first child if it has none).
+    /// Returns a `NodeMut` pointing to the newly added `Node`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// root.append(2);
+    ///
+    /// assert!(root.first_child().is_some());
+    /// assert_eq!(root.first_child().unwrap().data(), &mut 2);
+    ///
+    /// assert!(root.last_child().is_some());
+    /// assert_eq!(root.last_child().unwrap().data(), &mut 2);
+    ///
+    /// let mut child = root.first_child().unwrap();
+    ///
+    /// assert!(child.parent().is_some());
+    /// assert_eq!(child.parent().unwrap().data(), &mut 1);
+    /// ```
+    ///
     pub fn append(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
@@ -86,6 +206,30 @@ impl<'a, T> NodeMut<'a, T> {
         NodeMut::new(new_id, self.tree)
     }
 
+    ///
+    /// Prepends a new `Node` as this `Node`'s first child (and last child if it has none).
+    /// Returns a `NodeMut` pointing to the newly added `Node`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// root.prepend(2);
+    ///
+    /// assert!(root.first_child().is_some());
+    /// assert_eq!(root.first_child().unwrap().data(), &mut 2);
+    ///
+    /// assert!(root.last_child().is_some());
+    /// assert_eq!(root.last_child().unwrap().data(), &mut 2);
+    ///
+    /// let mut child = root.first_child().unwrap();
+    ///
+    /// assert!(child.parent().is_some());
+    /// assert_eq!(child.parent().unwrap().data(), &mut 1);
+    /// ```
+    ///
     pub fn prepend(&mut self, data: T) -> NodeMut<T> {
         let new_id = self.tree.core_tree.insert(data);
 
@@ -106,6 +250,31 @@ impl<'a, T> NodeMut<'a, T> {
         NodeMut::new(new_id, self.tree)
     }
 
+    ///
+    /// Remove the first child of this `Node` and return the data that child contained.
+    /// Returns a `Some`-value if this `Node` has a child to remove; returns a `None`-value
+    /// otherwise.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    /// root.append(2);
+    /// root.append(3);
+    ///
+    /// let two = root.remove_first();
+    ///
+    /// assert!(two.is_some());
+    /// assert_eq!(two.unwrap(), 2);
+    ///
+    /// assert!(root.first_child().is_some());
+    /// assert_eq!(root.first_child().unwrap().data(), &mut 3);
+    ///
+    /// assert!(root.last_child().is_some());
+    /// assert_eq!(root.last_child().unwrap().data(), &mut 3);
+    /// ```
+    ///
     pub fn remove_first(&mut self) -> Option<T> {
         let relatives = self.tree.get_node_relatives(self.node_id);
 
@@ -125,6 +294,31 @@ impl<'a, T> NodeMut<'a, T> {
         self.tree.core_tree.remove(first_id)
     }
 
+    ///
+    /// Remove the first child of this `Node` and return the data that child contained.
+    /// Returns a `Some`-value if this `Node` has a child to remove; returns a `None`-value
+    /// otherwise.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    /// root.append(2);
+    /// root.append(3);
+    ///
+    /// let three = root.remove_last();
+    ///
+    /// assert!(three.is_some());
+    /// assert_eq!(three.unwrap(), 3);
+    ///
+    /// assert!(root.first_child().is_some());
+    /// assert_eq!(root.first_child().unwrap().data(), &mut 2);
+    ///
+    /// assert!(root.last_child().is_some());
+    /// assert_eq!(root.last_child().unwrap().data(), &mut 2);
+    /// ```
+    ///
     pub fn remove_last(&mut self) -> Option<T> {
         let relatives = self.tree.get_node_relatives(self.node_id);
 
@@ -144,6 +338,21 @@ impl<'a, T> NodeMut<'a, T> {
         self.tree.core_tree.remove(last_id)
     }
 
+    ///
+    /// Returns a `NodeRef` pointing to this `NodeMut`.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let mut root = tree.root_mut().expect("root doesn't exist?");
+    /// root.append(2);
+    ///
+    /// let root = root.as_ref();
+    ///
+    /// assert_eq!(root.data(), &1);
+    /// ```
+    ///
     pub fn as_ref(&self) -> NodeRef<T> {
         NodeRef::new(self.node_id, self.tree)
     }

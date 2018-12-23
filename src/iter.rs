@@ -2,6 +2,8 @@ use crate::node::*;
 use crate::tree::Tree;
 use crate::NodeId;
 
+// todo: document this
+
 pub struct Ancestors<'a, T> {
     node_id: Option<NodeId>,
     tree: &'a Tree<T>,
@@ -27,6 +29,7 @@ impl<'a, T> Iterator for Ancestors<'a, T> {
     }
 }
 
+// possibly re-name this, not sure how I feel about it
 pub struct NextSiblings<'a, T> {
     node_id: Option<NodeId>,
     tree: &'a Tree<T>,

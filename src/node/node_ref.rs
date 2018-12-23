@@ -21,10 +21,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// Returns a reference to the data contained by the given `Node`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert_eq!(root.data(), &1);
@@ -43,10 +43,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// the `NodeRef` if this `Node` has a parent; otherwise returns a `None`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.parent().is_none());
@@ -64,10 +64,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// containing the `NodeRef` if this `Node` has a previous sibling; otherwise returns a `None`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.prev_sibling().is_none());
@@ -85,10 +85,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// containing the `NodeRef` if this `Node` has a next sibling; otherwise returns a `None`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.next_sibling().is_none());
@@ -106,10 +106,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// containing the `NodeRef` if this `Node` has a first child; otherwise returns a `None`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.first_child().is_none());
@@ -127,10 +127,10 @@ impl<'a, T> NodeRef<'a, T> {
     /// containing the `NodeRef` if this `Node` has a last child; otherwise returns a `None`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    ///
     /// let root = tree.root().expect("root doesn't exist?");
     ///
     /// assert!(root.last_child().is_none());
@@ -148,10 +148,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// returns a `NodeRef` pointing to the current `Node`'s parent.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
     ///
     /// let leaf_id = tree.root_mut().expect("root doesn't exist?")
     ///     .append(2)
@@ -176,10 +175,9 @@ impl<'a, T> NodeRef<'a, T> {
     /// returns a `NodeRef` pointing to the next child of the given `Node`.
     ///
     /// ```
-    /// use slab_tree::tree::Tree;
+    /// use slab_tree::tree::TreeBuilder;
     ///
-    /// let mut tree = Tree::new();
-    /// tree.set_root(1);
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
     ///
     /// let mut root = tree.root_mut().expect("root doesn't exist?");
     /// root.append(2);
