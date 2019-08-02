@@ -376,6 +376,71 @@ impl<T> Default for Tree<T> {
     }
 }
 
+impl<T: std::fmt::Debug> Tree<T> {
+    /// Write formatted tree representation and nodes with debug formatting.
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(0).build();
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.append(1)
+    ///     .append(2);
+    /// root.append(3);
+    /// let mut s = String::new();
+    /// tree.write_formatted(&mut s).unwrap();
+    /// assert_eq!(&s, "\
+    /// 0
+    /// ├── 1
+    /// │   └── 2
+    /// └── 3
+    /// ");
+    /// ```
+    pub fn write_formatted<W: std::fmt::Write>(&self, w: &mut W) -> std::fmt::Result {
+        let root = self.root().unwrap();
+        return write_node(self, w, root, 0, vec![]);
+        fn write_node<W: std::fmt::Write, T: std::fmt::Debug>(
+            tree: &Tree<T>,
+            w: &mut W,
+            node: NodeRef<T>,
+            level: usize,
+            last: Vec<bool>,
+        ) -> std::fmt::Result {
+            debug_assert_eq!(last.len(), level);
+            for i in 1..level {
+                if last[i - 1] {
+                    write!(w, "    ")?;
+                } else {
+                    write!(w, "│   ")?;
+                }
+            }
+            if level > 0 {
+                if last[level - 1] {
+                    write!(w, "└── ")?;
+                } else {
+                    write!(w, "├── ")?;
+                }
+            }
+            writeln!(w, "{:?}", node.data())?;
+            let mut children = node.children().collect::<Vec<NodeRef<T>>>();
+            if !children.is_empty() {
+                for child in children.drain(0..children.len() - 1) {
+                    let mut last = last.clone();
+                    last.push(false);
+                    write_node(tree, w, child, level + 1, last)?;
+                }
+                let last_node = children.pop().unwrap();
+                let mut last = last.clone();
+                last.push(true);
+                write_node(tree, w, last_node, level + 1, last)?;
+            }
+            Ok(())
+        }
+    }
+}
+
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod tree_tests {
