@@ -357,6 +357,285 @@ impl<'a, T> NodeMut<'a, T> {
         NodeRef::new(self.node_id, self.tree)
     }
 
+    /// Exchange positions with the next sibling.
+    ///
+    /// Returns true if swapped with a next sibling, returns false if this was
+    /// already the last sibling.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let two_id = {
+    ///     let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///     let two_id = root.append(2).node_id();
+    ///     root.append(3);
+    ///     root.append(4);
+    ///     two_id
+    /// };
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![2, 3, 4]);
+    /// assert!(tree.get_mut(two_id).unwrap().swap_next_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![3, 2, 4]);
+    /// assert!(tree.get_mut(two_id).unwrap().swap_next_sibling());
+    /// assert_eq!(
+    ///   tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![3, 4, 2]);
+    /// assert!(!tree.get_mut(two_id).unwrap().swap_next_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![3, 4, 2]);
+    /// ```
+    pub fn swap_next_sibling(&mut self) -> bool {
+        let node_id = self.node_id();
+        let prev_id = self.tree.get_node_prev_sibling_id(node_id);
+        let next_id = self.tree.get_node_next_sibling_id(node_id);
+        if let Some(next_id) = next_id {
+            if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
+                let (set_first, set_last) = {
+                    let parent = self.tree.get(parent_id).unwrap();
+                    (
+                        node_id == parent.first_child().unwrap().node_id(),
+                        next_id == parent.last_child().unwrap().node_id(),
+                    )
+                };
+                if set_first {
+                    self.tree.set_first_child(parent_id, Some(next_id));
+                }
+                if set_last {
+                    self.tree.set_last_child(parent_id, Some(node_id));
+                }
+            }
+            let new_next_id = self.tree.get_node_next_sibling_id(next_id);
+            self.tree
+                .set_prev_siblings_next_sibling(node_id, Some(next_id));
+            self.tree.set_next_siblings_prev_sibling(node_id, prev_id);
+            self.tree.set_prev_sibling(node_id, Some(next_id));
+            self.tree.set_next_sibling(node_id, new_next_id);
+            self.tree
+                .set_prev_siblings_next_sibling(node_id, Some(node_id));
+            self.tree
+                .set_next_siblings_prev_sibling(node_id, Some(node_id));
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Exchange positions with the previous sibling.
+    ///
+    /// Returns true if swapped with a previous sibling, returns false if this
+    /// was already the first sibling.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let four_id = {
+    ///     let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///     root.append(2);
+    ///     root.append(3);
+    ///     let four_id = root.append(4).node_id();
+    ///     four_id
+    /// };
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![2, 3, 4]);
+    /// assert!(tree.get_mut(four_id).unwrap().swap_prev_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![2, 4, 3]);
+    /// assert!(tree.get_mut(four_id).unwrap().swap_prev_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![4, 2, 3]);
+    /// assert!(!tree.get_mut(four_id).unwrap().swap_prev_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![4, 2, 3]);
+    /// ```
+    pub fn swap_prev_sibling(&mut self) -> bool {
+        let node_id = self.node_id();
+        let prev_id = self.tree.get_node_prev_sibling_id(node_id);
+        let next_id = self.tree.get_node_next_sibling_id(node_id);
+        if let Some(prev_id) = prev_id {
+            if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
+                let (set_first, set_last) = {
+                    let parent = self.tree.get(parent_id).unwrap();
+                    (
+                        prev_id == parent.first_child().unwrap().node_id(),
+                        node_id == parent.last_child().unwrap().node_id(),
+                    )
+                };
+                if set_first {
+                    self.tree.set_first_child(parent_id, Some(node_id));
+                }
+                if set_last {
+                    self.tree.set_last_child(parent_id, Some(prev_id));
+                }
+            }
+            let new_prev_id = self.tree.get_node_prev_sibling_id(prev_id);
+            self.tree.set_prev_siblings_next_sibling(node_id, next_id);
+            self.tree
+                .set_next_siblings_prev_sibling(node_id, Some(prev_id));
+            self.tree.set_prev_sibling(node_id, new_prev_id);
+            self.tree.set_next_sibling(node_id, Some(prev_id));
+            self.tree
+                .set_prev_siblings_next_sibling(node_id, Some(node_id));
+            self.tree
+                .set_next_siblings_prev_sibling(node_id, Some(node_id));
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Moves this node to the last sibling position.
+    ///
+    /// Returns false if the node was already the last sibling.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let two_id = {
+    ///     let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///     let two_id = root.append(2).node_id();
+    ///     root.append(3);
+    ///     root.append(4);
+    ///     two_id
+    /// };
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![2, 3, 4]);
+    /// assert!(tree.get_mut(two_id).unwrap().to_last_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![3, 4, 2]);
+    /// assert!(!tree.get_mut(two_id).unwrap().to_last_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![3, 4, 2]);
+    /// ```
+    pub fn to_last_sibling(&mut self) -> bool {
+        if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
+            let node_id = self.node_id();
+            let prev_id = self.tree.get_node_prev_sibling_id(node_id);
+            let next_id = self.tree.get_node_next_sibling_id(node_id);
+            let last_id = self
+                .tree
+                .get(parent_id)
+                .unwrap()
+                .last_child()
+                .unwrap()
+                .node_id();
+            let first_id = self
+                .tree
+                .get(parent_id)
+                .unwrap()
+                .first_child()
+                .unwrap()
+                .node_id();
+            if node_id != last_id {
+                self.tree.set_last_child(parent_id, Some(node_id));
+                if node_id == first_id {
+                    self.tree.set_first_child(parent_id, next_id);
+                }
+                self.tree.set_next_sibling(last_id, Some(node_id));
+                self.tree.set_prev_siblings_next_sibling(node_id, next_id);
+                self.tree.set_next_siblings_prev_sibling(node_id, prev_id);
+                self.tree.set_prev_sibling(node_id, Some(last_id));
+                self.tree.set_next_sibling(node_id, None);
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    /// Moves this node to the first sibling position.
+    ///
+    /// Returns false if the node was already the first sibling.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let four_id = {
+    ///     let mut root = tree.root_mut().expect("root doesn't exist?");
+    ///     root.append(2);
+    ///     root.append(3);
+    ///     root.append(4).node_id()
+    /// };
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![2, 3, 4]);
+    /// assert!(tree.get_mut(four_id).unwrap().to_first_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![4, 2, 3]);
+    /// assert!(!tree.get_mut(four_id).unwrap().to_first_sibling());
+    /// assert_eq!(
+    ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
+    ///         .collect::<Vec<i32>>(),
+    ///     vec![4, 2, 3]);
+    /// ```
+    pub fn to_first_sibling(&mut self) -> bool {
+        if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
+            let node_id = self.node_id();
+            let prev_id = self.tree.get_node_prev_sibling_id(node_id);
+            let next_id = self.tree.get_node_next_sibling_id(node_id);
+            let first_id = self
+                .tree
+                .get(parent_id)
+                .unwrap()
+                .first_child()
+                .unwrap()
+                .node_id();
+            let last_id = self
+                .tree
+                .get(parent_id)
+                .unwrap()
+                .last_child()
+                .unwrap()
+                .node_id();
+            if node_id != first_id {
+                self.tree.set_first_child(parent_id, Some(node_id));
+                if node_id == last_id {
+                    self.tree.set_last_child(parent_id, prev_id);
+                }
+                self.tree.set_prev_sibling(first_id, Some(node_id));
+                self.tree.set_prev_siblings_next_sibling(node_id, next_id);
+                self.tree.set_next_siblings_prev_sibling(node_id, prev_id);
+                self.tree.set_next_sibling(node_id, Some(first_id));
+                self.tree.set_prev_sibling(node_id, None);
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
     fn get_self_as_node(&self) -> &Node<T> {
         if let Some(node) = self.tree.get_node(self.node_id) {
             &node
