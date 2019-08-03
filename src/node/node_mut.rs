@@ -382,16 +382,40 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![3, 2, 4]);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     3);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     4);
     /// assert!(tree.get_mut(two_id).unwrap().swap_next_sibling());
     /// assert_eq!(
     ///   tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![3, 4, 2]);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     3);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     2);
     /// assert!(!tree.get_mut(two_id).unwrap().swap_next_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![3, 4, 2]);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     3);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     2);
     /// ```
     pub fn swap_next_sibling(&mut self) -> bool {
         let node_id = self.node_id();
@@ -454,16 +478,40 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![2, 4, 3]);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     2);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     3);
     /// assert!(tree.get_mut(four_id).unwrap().swap_prev_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![4, 2, 3]);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     4);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     3);
     /// assert!(!tree.get_mut(four_id).unwrap().swap_prev_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![4, 2, 3]);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     4);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     3);
     /// ```
     pub fn swap_prev_sibling(&mut self) -> bool {
         let node_id = self.node_id();
@@ -525,11 +573,27 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![3, 4, 2]);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     3);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     2);
     /// assert!(!tree.get_mut(two_id).unwrap().to_last_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![3, 4, 2]);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     3);
+    /// assert_eq!(
+    ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     2);
     /// ```
     pub fn to_last_sibling(&mut self) -> bool {
         if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
@@ -592,11 +656,27 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![4, 2, 3]);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     4);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     3);
     /// assert!(!tree.get_mut(four_id).unwrap().to_first_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![4, 2, 3]);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().first_child().unwrap()
+    ///         .data(),
+    ///     4);
+    /// assert_eq!(
+    ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
+    ///         .data(),
+    ///     3);
     /// ```
     pub fn to_first_sibling(&mut self) -> bool {
         if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
