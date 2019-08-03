@@ -398,9 +398,23 @@ impl<T: std::fmt::Debug> Tree<T> {
     /// └── 3
     /// ");
     /// ```
+    ///
+    /// Writes nothing if the tree is empty.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let tree = TreeBuilder::<i32>::new().build();
+    /// let mut s = String::new();
+    /// tree.write_formatted(&mut s).unwrap();
+    /// assert_eq!(&s, "");
+    /// ```
     pub fn write_formatted<W: std::fmt::Write>(&self, w: &mut W) -> std::fmt::Result {
-        let root = self.root().unwrap();
-        return write_node(self, w, root, 0, vec![]);
+        return if let Some(root) = self.root() {
+            write_node(self, w, root, 0, vec![])
+        } else {
+            Ok(())
+        };
         fn write_node<W: std::fmt::Write, T: std::fmt::Debug>(
             tree: &Tree<T>,
             w: &mut W,
@@ -408,7 +422,11 @@ impl<T: std::fmt::Debug> Tree<T> {
             level: usize,
             last: Vec<bool>,
         ) -> std::fmt::Result {
-            debug_assert_eq!(last.len(), level);
+            debug_assert_eq!(
+                last.len(),
+                level,
+                "each previous level should indicate whether it has reached the last node"
+            );
             for i in 1..level {
                 if last[i - 1] {
                     write!(w, "    ")?;
@@ -431,7 +449,11 @@ impl<T: std::fmt::Debug> Tree<T> {
                     last.push(false);
                     write_node(tree, w, child, level + 1, last)?;
                 }
-                let last_node = children.pop().unwrap();
+                let last_node = children.pop().expect("expected to pop last child node");
+                debug_assert!(
+                    children.is_empty(),
+                    "popped child node was not the last node"
+                );
                 let mut last = last.clone();
                 last.push(true);
                 write_node(tree, w, last_node, level + 1, last)?;
