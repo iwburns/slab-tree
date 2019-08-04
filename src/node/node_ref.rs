@@ -18,6 +18,25 @@ impl<'a, T> NodeRef<'a, T> {
     }
 
     ///
+    /// Returns the `NodeId` that identifies this `Node` in the tree.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// let root_id = tree.root_id().expect("root doesn't exist?");
+    /// let root = tree.root_mut().expect("root doesn't exist?");
+    ///
+    /// let root_id_again = root.node_id();
+    ///
+    /// assert_eq!(root_id_again, root_id);
+    /// ```
+    ///
+    pub fn node_id(&self) -> NodeId {
+        self.node_id
+    }
+
+    ///
     /// Returns a reference to the data contained by the given `Node`.
     ///
     /// ```

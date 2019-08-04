@@ -410,56 +410,52 @@ impl<T: std::fmt::Debug> Tree<T> {
     /// assert_eq!(&s, "");
     /// ```
     pub fn write_formatted<W: std::fmt::Write>(&self, w: &mut W) -> std::fmt::Result {
-        return if let Some(root) = self.root() {
-            write_node(self, w, root, 0, vec![])
-        } else {
-            Ok(())
-        };
-        fn write_node<W: std::fmt::Write, T: std::fmt::Debug>(
-            tree: &Tree<T>,
-            w: &mut W,
-            node: NodeRef<T>,
-            level: usize,
-            last: Vec<bool>,
-        ) -> std::fmt::Result {
-            debug_assert_eq!(
-                last.len(),
-                level,
-                "each previous level should indicate whether it has reached the last node"
-            );
-            for i in 1..level {
-                if last[i - 1] {
-                    write!(w, "    ")?;
-                } else {
-                    write!(w, "│   ")?;
-                }
-            }
-            if level > 0 {
-                if last[level - 1] {
-                    write!(w, "└── ")?;
-                } else {
-                    write!(w, "├── ")?;
-                }
-            }
-            writeln!(w, "{:?}", node.data())?;
-            let mut children = node.children().collect::<Vec<NodeRef<T>>>();
-            if !children.is_empty() {
-                for child in children.drain(0..children.len() - 1) {
-                    let mut last = last.clone();
-                    last.push(false);
-                    write_node(tree, w, child, level + 1, last)?;
-                }
-                let last_node = children.pop().expect("expected to pop last child node");
-                debug_assert!(
-                    children.is_empty(),
-                    "popped child node was not the last node"
+        if let Some(root) = self.root() {
+            let node_id = root.node_id();
+            let childn = 0;
+            let level = 0;
+            let last = vec![];
+            let mut stack = vec![(node_id, childn, level, last)];
+            while let Some((node_id, childn, level, last)) = stack.pop() {
+                debug_assert_eq!(
+                    last.len(),
+                    level,
+                    "each previous level should indicate whether it has reached the last node"
                 );
-                let mut last = last.clone();
-                last.push(true);
-                write_node(tree, w, last_node, level + 1, last)?;
+                let node = self
+                    .get(node_id)
+                    .expect("getting node of existing node ref id");
+                if childn == 0 {
+                    for i in 1..level {
+                        if last[i - 1] {
+                            write!(w, "    ")?;
+                        } else {
+                            write!(w, "│   ")?;
+                        }
+                    }
+                    if level > 0 {
+                        if last[level - 1] {
+                            write!(w, "└── ")?;
+                        } else {
+                            write!(w, "├── ")?;
+                        }
+                    }
+                    writeln!(w, "{:?}", node.data())?;
+                }
+                let mut children = node.children().skip(childn);
+                if let Some(child) = children.next() {
+                    let mut next_last = last.clone();
+                    if children.next().is_some() {
+                        stack.push((node_id, childn + 1, level, last));
+                        next_last.push(false);
+                    } else {
+                        next_last.push(true);
+                    }
+                    stack.push((child.node_id(), 0, level + 1, next_last));
+                }
             }
-            Ok(())
         }
+        Ok(())
     }
 }
 
