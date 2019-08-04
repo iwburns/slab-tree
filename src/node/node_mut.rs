@@ -568,7 +568,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![2, 3, 4]);
-    /// assert!(tree.get_mut(two_id).unwrap().to_last_sibling());
+    /// assert!(tree.get_mut(two_id).unwrap().make_last_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
@@ -581,7 +581,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///     *tree.get(two_id).unwrap().parent().unwrap().last_child().unwrap()
     ///         .data(),
     ///     2);
-    /// assert!(!tree.get_mut(two_id).unwrap().to_last_sibling());
+    /// assert!(!tree.get_mut(two_id).unwrap().make_last_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
@@ -595,7 +595,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///         .data(),
     ///     2);
     /// ```
-    pub fn to_last_sibling(&mut self) -> bool {
+    pub fn make_last_sibling(&mut self) -> bool {
         if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
             let node_id = self.node_id();
             let prev_id = self.tree.get_node_prev_sibling_id(node_id);
@@ -651,7 +651,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
     ///     vec![2, 3, 4]);
-    /// assert!(tree.get_mut(four_id).unwrap().to_first_sibling());
+    /// assert!(tree.get_mut(four_id).unwrap().make_first_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
@@ -664,7 +664,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///     *tree.get(four_id).unwrap().parent().unwrap().last_child().unwrap()
     ///         .data(),
     ///     3);
-    /// assert!(!tree.get_mut(four_id).unwrap().to_first_sibling());
+    /// assert!(!tree.get_mut(four_id).unwrap().make_first_sibling());
     /// assert_eq!(
     ///     tree.root().unwrap().children().map(|child_ref| *child_ref.data())
     ///         .collect::<Vec<i32>>(),
@@ -678,7 +678,7 @@ impl<'a, T> NodeMut<'a, T> {
     ///         .data(),
     ///     3);
     /// ```
-    pub fn to_first_sibling(&mut self) -> bool {
+    pub fn make_first_sibling(&mut self) -> bool {
         if let Some(parent_id) = self.parent().map(|parent| parent.node_id()) {
             let node_id = self.node_id();
             let prev_id = self.tree.get_node_prev_sibling_id(node_id);
