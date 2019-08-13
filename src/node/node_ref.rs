@@ -1,5 +1,8 @@
 use crate::iter::Ancestors;
+use crate::iter::LevelOrder;
 use crate::iter::NextSiblings;
+use crate::iter::PostOrder;
+use crate::iter::PreOrder;
 use crate::node::Node;
 use crate::tree::Tree;
 use crate::NodeId;
@@ -27,7 +30,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// let root_id = tree.root_id().expect("root doesn't exist?");
     /// let root = tree.root_mut().expect("root doesn't exist?");
     ///
-    /// let root_id_again = root.node_id();
+    /// let root_id_again = root.as_ref().node_id();
     ///
     /// assert_eq!(root_id_again, root_id);
     /// ```
@@ -214,6 +217,63 @@ impl<'a, T> NodeRef<'a, T> {
     pub fn children(&self) -> impl Iterator<Item = NodeRef<T>> {
         let first_child_id = self.tree.get_node_relatives(self.node_id).first_child;
         NextSiblings::new(first_child_id, self.tree)
+    }
+
+    /// Depth-first pre-order traversal.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(0i64).build();
+    /// let root_id = tree.root().unwrap().node_id();
+    /// let one_id = tree.get_mut(root_id).unwrap().append(1).node_id();
+    /// tree.get_mut(one_id).unwrap().append(2);
+    /// tree.get_mut(one_id).unwrap().append(3);
+    /// tree.get_mut(root_id).unwrap().append(4);
+    /// let pre_order = tree.root().unwrap().traverse_pre_order()
+    ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
+    /// assert_eq!(pre_order, vec![0, 1, 2, 3, 4]);
+    /// ```
+    pub fn traverse_pre_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+        PreOrder::new(self, self.tree)
+    }
+
+    /// Depth-first post-order traversal.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(0i64).build();
+    /// let root_id = tree.root().unwrap().node_id();
+    /// let one_id = tree.get_mut(root_id).unwrap().append(1).node_id();
+    /// tree.get_mut(one_id).unwrap().append(2);
+    /// tree.get_mut(one_id).unwrap().append(3);
+    /// tree.get_mut(root_id).unwrap().append(4);
+    /// let post_order = tree.root().unwrap().traverse_post_order()
+    ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
+    /// assert_eq!(post_order, vec![2, 3, 1, 4, 0]);
+    /// ```
+    pub fn traverse_post_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+        PostOrder::new(self, self.tree)
+    }
+
+    /// Depth-first level-order traversal.
+    ///
+    /// ```
+    /// use slab_tree::tree::TreeBuilder;
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(0i64).build();
+    /// let root_id = tree.root().unwrap().node_id();
+    /// let one_id = tree.get_mut(root_id).unwrap().append(1).node_id();
+    /// tree.get_mut(one_id).unwrap().append(2);
+    /// tree.get_mut(one_id).unwrap().append(3);
+    /// tree.get_mut(root_id).unwrap().append(4);
+    /// let level_order = tree.root().unwrap().traverse_level_order()
+    ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
+    /// assert_eq!(level_order, vec![0, 1, 4, 2, 3]);
+    /// ```
+    pub fn traverse_level_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+        LevelOrder::new(self, self.tree)
     }
 
     fn get_self_as_node(&self) -> &Node<T> {
