@@ -715,7 +715,11 @@ mod tree_tests {
             four_id = root.append(4).node_id();
         }
         {
-            five_id = tree.get_mut(three_id).expect("three doesn't exist?").append(5).node_id();
+            five_id = tree
+                .get_mut(three_id)
+                .expect("three doesn't exist?")
+                .append(5)
+                .node_id();
         }
 
         //        1
@@ -726,7 +730,9 @@ mod tree_tests {
 
         tree.remove(three_id, DropChildren);
 
-        let root = tree.get_node(tree.root_id().expect("tree doesn't exist?")).unwrap();
+        let root = tree
+            .get_node(tree.root_id().expect("tree doesn't exist?"))
+            .unwrap();
         assert!(root.relatives.first_child.is_some());
         assert!(root.relatives.last_child.is_some());
         assert_eq!(root.relatives.first_child.unwrap(), two_id);
@@ -763,7 +769,11 @@ mod tree_tests {
             four_id = root.append(4).node_id();
         }
         {
-            five_id = tree.get_mut(three_id).expect("three doesn't exist?").append(5).node_id();
+            five_id = tree
+                .get_mut(three_id)
+                .expect("three doesn't exist?")
+                .append(5)
+                .node_id();
         }
 
         //        1
@@ -774,7 +784,9 @@ mod tree_tests {
 
         tree.remove(three_id, OrphanChildren);
 
-        let root = tree.get_node(tree.root_id().expect("tree doesn't exist?")).unwrap();
+        let root = tree
+            .get_node(tree.root_id().expect("tree doesn't exist?"))
+            .unwrap();
         assert!(root.relatives.first_child.is_some());
         assert!(root.relatives.last_child.is_some());
         assert_eq!(root.relatives.first_child.unwrap(), two_id);
