@@ -1,3 +1,4 @@
+use crate::behaviors::RemoveBehavior;
 use crate::node::Node;
 use crate::node::NodeRef;
 use crate::tree::Tree;
@@ -255,15 +256,19 @@ impl<'a, T> NodeMut<'a, T> {
     /// Returns a `Some`-value if this `Node` has a child to remove; returns a `None`-value
     /// otherwise.
     ///
+    /// Children of the removed `Node` can either be dropped with `DropChildren` or orphaned with
+    /// `OrphanChildren`.
+    ///
     /// ```
     /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::behaviors::RemoveBehavior::*;
     ///
     /// let mut tree = TreeBuilder::new().with_root(1).build();
     /// let mut root = tree.root_mut().expect("root doesn't exist?");
     /// root.append(2);
     /// root.append(3);
     ///
-    /// let two = root.remove_first();
+    /// let two = root.remove_first(DropChildren);
     ///
     /// assert!(two.is_some());
     /// assert_eq!(two.unwrap(), 2);
@@ -275,23 +280,12 @@ impl<'a, T> NodeMut<'a, T> {
     /// assert_eq!(root.last_child().unwrap().data(), &mut 3);
     /// ```
     ///
-    pub fn remove_first(&mut self) -> Option<T> {
+    pub fn remove_first(&mut self, behavior: RemoveBehavior) -> Option<T> {
+        // todo: can probably simplify this
         let relatives = self.tree.get_node_relatives(self.node_id);
-
         let first = relatives.first_child;
-        let last = relatives.last_child;
-
         let first_id = first?;
-        if first == last {
-            self.tree.set_first_child(self.node_id, None);
-            self.tree.set_last_child(self.node_id, None);
-        } else {
-            let first_child = self.tree.get_node_relatives(first_id).next_sibling;
-            self.tree.set_first_child(self.node_id, first_child);
-            self.tree.set_next_siblings_prev_sibling(first_id, None);
-        }
-
-        self.tree.core_tree.remove(first_id)
+        self.tree.remove(first_id, behavior)
     }
 
     ///
@@ -299,15 +293,19 @@ impl<'a, T> NodeMut<'a, T> {
     /// Returns a `Some`-value if this `Node` has a child to remove; returns a `None`-value
     /// otherwise.
     ///
+    /// Children of the removed `Node` can either be dropped with `DropChildren` or orphaned with
+    /// `OrphanChildren`.
+    ///
     /// ```
     /// use slab_tree::tree::TreeBuilder;
+    /// use slab_tree::behaviors::RemoveBehavior::*;
     ///
     /// let mut tree = TreeBuilder::new().with_root(1).build();
     /// let mut root = tree.root_mut().expect("root doesn't exist?");
     /// root.append(2);
     /// root.append(3);
     ///
-    /// let three = root.remove_last();
+    /// let three = root.remove_last(DropChildren);
     ///
     /// assert!(three.is_some());
     /// assert_eq!(three.unwrap(), 3);
@@ -319,23 +317,12 @@ impl<'a, T> NodeMut<'a, T> {
     /// assert_eq!(root.last_child().unwrap().data(), &mut 2);
     /// ```
     ///
-    pub fn remove_last(&mut self) -> Option<T> {
+    pub fn remove_last(&mut self, behavior: RemoveBehavior) -> Option<T> {
+        // todo: can probably simplify this
         let relatives = self.tree.get_node_relatives(self.node_id);
-
-        let first = relatives.first_child;
         let last = relatives.last_child;
-
         let last_id = last?;
-        if first == last {
-            self.tree.set_first_child(self.node_id, None);
-            self.tree.set_last_child(self.node_id, None);
-        } else {
-            let last_child = self.tree.get_node_relatives(last_id).prev_sibling;
-            self.tree.set_last_child(self.node_id, last_child);
-            self.tree.set_prev_siblings_next_sibling(last_id, None);
-        }
-
-        self.tree.core_tree.remove(last_id)
+        self.tree.remove(last_id, behavior)
     }
 
     ///
@@ -728,6 +715,7 @@ impl<'a, T> NodeMut<'a, T> {
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(test)]
 mod node_mut_tests {
+    use crate::behaviors::RemoveBehavior::{DropChildren, OrphanChildren};
     use crate::tree::Tree;
 
     #[test]
@@ -1101,7 +1089,7 @@ mod node_mut_tests {
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
-        let first_child_data = root_mut.remove_first();
+        let first_child_data = root_mut.remove_first(DropChildren);
         assert_eq!(first_child_data, None);
 
         let root_node = tree.get_node(root_id);
@@ -1113,15 +1101,16 @@ mod node_mut_tests {
     }
 
     #[test]
-    fn remove_first_single_child_present() {
+    fn remove_first_drop_single_child_present() {
         let mut tree = Tree::new();
         tree.set_root(1);
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
-        root_mut.append(2);
-        let first_child_data = root_mut.remove_first();
-        assert_eq!(first_child_data, Some(2));
+        let two_id = root_mut.append(2).node_id();
+
+        let removed = root_mut.remove_first(DropChildren);
+        assert_eq!(removed, Some(2));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
@@ -1129,79 +1118,131 @@ mod node_mut_tests {
         let root_node = root_node.unwrap();
         assert_eq!(root_node.relatives.first_child, None);
         assert_eq!(root_node.relatives.last_child, None);
+
+        let two = tree.get_node(two_id);
+        assert!(two.is_none());
     }
 
     #[test]
-    fn remove_first_two_children_present() {
+    fn remove_first_drop_two_children_present() {
         let mut tree = Tree::new();
         tree.set_root(1);
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
-        let node_id = root_mut.append(3).node_id();
+        let three_id = root_mut.append(3).node_id();
 
-        let first_child_data = root_mut.remove_first();
-        assert_eq!(first_child_data, Some(2));
+        let removed = root_mut.remove_first(DropChildren);
+        assert_eq!(removed, Some(2));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
 
         let root_node = root_node.unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id));
-        assert_eq!(root_node.relatives.last_child, Some(node_id));
+        assert_eq!(root_node.relatives.first_child, Some(three_id));
+        assert_eq!(root_node.relatives.last_child, Some(three_id));
 
-        let node = tree.get_node(node_id);
-        assert!(node.is_some());
+        let three = tree.get_node(three_id);
+        assert!(three.is_some());
 
-        let node = node.unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id));
-        assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, None);
-        assert_eq!(node.relatives.first_child, None);
-        assert_eq!(node.relatives.last_child, None);
+        let three = three.unwrap();
+        assert_eq!(three.relatives.parent, Some(root_id));
+        assert_eq!(three.relatives.prev_sibling, None);
+        assert_eq!(three.relatives.next_sibling, None);
+        assert_eq!(three.relatives.first_child, None);
+        assert_eq!(three.relatives.last_child, None);
     }
 
     #[test]
-    fn remove_first_three_children_present() {
+    fn remove_first_drop_three_children_present() {
         let mut tree = Tree::new();
         tree.set_root(1);
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
-        let node_id = root_mut.append(3).node_id();
-        let node_id_2 = root_mut.append(4).node_id();
+        let three_id = root_mut.append(3).node_id();
+        let four_id = root_mut.append(4).node_id();
 
-        let first_child_data = root_mut.remove_first();
-        assert_eq!(first_child_data, Some(2));
+        let removed = root_mut.remove_first(DropChildren);
+        assert_eq!(removed, Some(2));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
 
         let root_node = root_node.unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id));
-        assert_eq!(root_node.relatives.last_child, Some(node_id_2));
+        assert_eq!(root_node.relatives.first_child, Some(three_id));
+        assert_eq!(root_node.relatives.last_child, Some(four_id));
 
-        let node = tree.get_node(node_id);
-        assert!(node.is_some());
+        let three = tree.get_node(three_id);
+        assert!(three.is_some());
 
-        let node = node.unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id));
-        assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, Some(node_id_2));
-        assert_eq!(node.relatives.first_child, None);
-        assert_eq!(node.relatives.last_child, None);
+        let three = three.unwrap();
+        assert_eq!(three.relatives.parent, Some(root_id));
+        assert_eq!(three.relatives.prev_sibling, None);
+        assert_eq!(three.relatives.next_sibling, Some(four_id));
+        assert_eq!(three.relatives.first_child, None);
+        assert_eq!(three.relatives.last_child, None);
 
-        let node_2 = tree.get_node(node_id_2);
-        assert!(node_2.is_some());
+        let four = tree.get_node(four_id);
+        assert!(four.is_some());
 
-        let node_2 = node_2.unwrap();
-        assert_eq!(node_2.relatives.parent, Some(root_id));
-        assert_eq!(node_2.relatives.prev_sibling, Some(node_id));
-        assert_eq!(node_2.relatives.next_sibling, None);
-        assert_eq!(node_2.relatives.first_child, None);
-        assert_eq!(node_2.relatives.last_child, None);
+        let four = four.unwrap();
+        assert_eq!(four.relatives.parent, Some(root_id));
+        assert_eq!(four.relatives.prev_sibling, Some(three_id));
+        assert_eq!(four.relatives.next_sibling, None);
+        assert_eq!(four.relatives.first_child, None);
+        assert_eq!(four.relatives.last_child, None);
+    }
+
+    #[test]
+    fn remove_first_drop_grandchild_present() {
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
+
+        let mut root_mut = tree.get_mut(root_id).unwrap();
+        let three_id = root_mut.append(2).append(3).node_id();
+
+        let removed = root_mut.remove_first(DropChildren);
+        assert_eq!(removed, Some(2));
+
+        let root_node = tree.get_node(root_id);
+        assert!(root_node.is_some());
+
+        let root_node = root_node.unwrap();
+        assert_eq!(root_node.relatives.first_child, None);
+        assert_eq!(root_node.relatives.last_child, None);
+
+        let three = tree.get_node(three_id);
+        assert!(three.is_none());
+    }
+
+    #[test]
+    fn remove_first_orphan_grandchild_present() {
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
+
+        let mut root_mut = tree.get_mut(root_id).unwrap();
+        let three_id = root_mut.append(2).append(3).node_id();
+
+        let removed = root_mut.remove_first(OrphanChildren);
+        assert_eq!(removed, Some(2));
+
+        let root_node = tree.get_node(root_id);
+        assert!(root_node.is_some());
+
+        let root_node = root_node.unwrap();
+        assert_eq!(root_node.relatives.first_child, None);
+        assert_eq!(root_node.relatives.last_child, None);
+
+        let three = tree.get_node(three_id);
+        assert!(three.is_some());
+
+        let three = three.unwrap();
+        assert_eq!(three.relatives.parent, None);
     }
 
     #[test]
@@ -1211,8 +1252,8 @@ mod node_mut_tests {
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
-        let last_child_data = root_mut.remove_last();
-        assert_eq!(last_child_data, None);
+        let removed = root_mut.remove_last(DropChildren);
+        assert_eq!(removed, None);
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
@@ -1230,8 +1271,8 @@ mod node_mut_tests {
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
         root_mut.append(2);
-        let last_child_data = root_mut.remove_last();
-        assert_eq!(last_child_data, Some(2));
+        let removed = root_mut.remove_last(DropChildren);
+        assert_eq!(removed, Some(2));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
@@ -1248,28 +1289,28 @@ mod node_mut_tests {
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
-        let node_id = root_mut.append(2).node_id();
+        let two_id = root_mut.append(2).node_id();
         root_mut.append(3);
 
-        let last_child_data = root_mut.remove_last();
-        assert_eq!(last_child_data, Some(3));
+        let removed = root_mut.remove_last(DropChildren);
+        assert_eq!(removed, Some(3));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
 
         let root_node = root_node.unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id));
-        assert_eq!(root_node.relatives.last_child, Some(node_id));
+        assert_eq!(root_node.relatives.first_child, Some(two_id));
+        assert_eq!(root_node.relatives.last_child, Some(two_id));
 
-        let node = tree.get_node(node_id);
-        assert!(node.is_some());
+        let two = tree.get_node(two_id);
+        assert!(two.is_some());
 
-        let node = node.unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id));
-        assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, None);
-        assert_eq!(node.relatives.first_child, None);
-        assert_eq!(node.relatives.last_child, None);
+        let two = two.unwrap();
+        assert_eq!(two.relatives.parent, Some(root_id));
+        assert_eq!(two.relatives.prev_sibling, None);
+        assert_eq!(two.relatives.next_sibling, None);
+        assert_eq!(two.relatives.first_child, None);
+        assert_eq!(two.relatives.last_child, None);
     }
 
     #[test]
@@ -1279,38 +1320,64 @@ mod node_mut_tests {
         let root_id = tree.root_id().expect("root doesn't exist?");
 
         let mut root_mut = tree.get_mut(root_id).unwrap();
-        let node_id = root_mut.append(2).node_id();
-        let node_id_2 = root_mut.append(3).node_id();
+        let two_id = root_mut.append(2).node_id();
+        let three_id = root_mut.append(3).node_id();
         root_mut.append(4);
 
-        let last_child_data = root_mut.remove_last();
-        assert_eq!(last_child_data, Some(4));
+        let removed = root_mut.remove_last(DropChildren);
+        assert_eq!(removed, Some(4));
 
         let root_node = tree.get_node(root_id);
         assert!(root_node.is_some());
 
         let root_node = root_node.unwrap();
-        assert_eq!(root_node.relatives.first_child, Some(node_id));
-        assert_eq!(root_node.relatives.last_child, Some(node_id_2));
+        assert_eq!(root_node.relatives.first_child, Some(two_id));
+        assert_eq!(root_node.relatives.last_child, Some(three_id));
 
-        let node = tree.get_node(node_id);
-        assert!(node.is_some());
+        let two = tree.get_node(two_id);
+        assert!(two.is_some());
 
-        let node = node.unwrap();
-        assert_eq!(node.relatives.parent, Some(root_id));
-        assert_eq!(node.relatives.prev_sibling, None);
-        assert_eq!(node.relatives.next_sibling, Some(node_id_2));
-        assert_eq!(node.relatives.first_child, None);
-        assert_eq!(node.relatives.last_child, None);
+        let two = two.unwrap();
+        assert_eq!(two.relatives.parent, Some(root_id));
+        assert_eq!(two.relatives.prev_sibling, None);
+        assert_eq!(two.relatives.next_sibling, Some(three_id));
+        assert_eq!(two.relatives.first_child, None);
+        assert_eq!(two.relatives.last_child, None);
 
-        let node_2 = tree.get_node(node_id_2);
-        assert!(node_2.is_some());
+        let three = tree.get_node(three_id);
+        assert!(three.is_some());
 
-        let node_2 = node_2.unwrap();
-        assert_eq!(node_2.relatives.parent, Some(root_id));
-        assert_eq!(node_2.relatives.prev_sibling, Some(node_id));
-        assert_eq!(node_2.relatives.next_sibling, None);
-        assert_eq!(node_2.relatives.first_child, None);
-        assert_eq!(node_2.relatives.last_child, None);
+        let three = three.unwrap();
+        assert_eq!(three.relatives.parent, Some(root_id));
+        assert_eq!(three.relatives.prev_sibling, Some(two_id));
+        assert_eq!(three.relatives.next_sibling, None);
+        assert_eq!(three.relatives.first_child, None);
+        assert_eq!(three.relatives.last_child, None);
+    }
+
+    #[test]
+    fn remove_last_orphan_grandchild_present() {
+        let mut tree = Tree::new();
+        tree.set_root(1);
+        let root_id = tree.root_id().expect("root doesn't exist?");
+
+        let mut root_mut = tree.get_mut(root_id).unwrap();
+        let three_id = root_mut.append(2).append(3).node_id();
+
+        let removed = root_mut.remove_last(OrphanChildren);
+        assert_eq!(removed, Some(2));
+
+        let root_node = tree.get_node(root_id);
+        assert!(root_node.is_some());
+
+        let root_node = root_node.unwrap();
+        assert_eq!(root_node.relatives.first_child, None);
+        assert_eq!(root_node.relatives.last_child, None);
+
+        let three = tree.get_node(three_id);
+        assert!(three.is_some());
+
+        let three = three.unwrap();
+        assert_eq!(three.relatives.parent, None);
     }
 }
