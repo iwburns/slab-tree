@@ -72,12 +72,14 @@
 //! * Comparison-based node insertion of any kind
 //!
 
+pub mod behaviors;
 mod core_tree;
 pub mod iter;
 pub mod node;
 mod slab;
 pub mod tree;
 
+pub use crate::behaviors::RemoveBehavior;
 pub use crate::iter::Ancestors;
 pub use crate::iter::NextSiblings;
 pub use crate::node::NodeMut;
