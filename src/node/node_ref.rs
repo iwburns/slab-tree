@@ -253,7 +253,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
     /// assert_eq!(post_order, vec![2, 3, 1, 4, 0]);
     /// ```
-    pub fn traverse_post_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn traverse_post_order(&self) -> PostOrder<'a, T> {
         PostOrder::new(self, self.tree)
     }
 
@@ -272,7 +272,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
     /// assert_eq!(level_order, vec![0, 1, 4, 2, 3]);
     /// ```
-    pub fn traverse_level_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn traverse_level_order(&self) -> LevelOrder<'a, T> {
         LevelOrder::new(self, self.tree)
     }
 
