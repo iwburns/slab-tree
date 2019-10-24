@@ -52,7 +52,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// assert_eq!(root.data(), &1);
     /// ```
     ///
-    pub fn data(&self) -> &T {
+    pub fn data(&self) -> &'a T {
         if let Some(node) = self.tree.get_node(self.node_id) {
             &node.data
         } else {
@@ -188,7 +188,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// }
     /// ```
     ///
-    pub fn ancestors(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn ancestors(&self) -> Ancestors<'a, T> {
         Ancestors::new(Some(self.node_id), self.tree)
     }
 
@@ -214,7 +214,7 @@ impl<'a, T> NodeRef<'a, T> {
     /// }
     /// ```
     ///
-    pub fn children(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn children(&self) -> NextSiblings<'a, T> {
         let first_child_id = self.tree.get_node_relatives(self.node_id).first_child;
         NextSiblings::new(first_child_id, self.tree)
     }
@@ -234,7 +234,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
     /// assert_eq!(pre_order, vec![0, 1, 2, 3, 4]);
     /// ```
-    pub fn traverse_pre_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn traverse_pre_order(&self) -> PreOrder<'a, T> {
         PreOrder::new(self, self.tree)
     }
 
@@ -253,7 +253,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
     /// assert_eq!(post_order, vec![2, 3, 1, 4, 0]);
     /// ```
-    pub fn traverse_post_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn traverse_post_order(&self) -> PostOrder<'a, T> {
         PostOrder::new(self, self.tree)
     }
 
@@ -272,7 +272,7 @@ impl<'a, T> NodeRef<'a, T> {
     ///     .map(|node_ref| node_ref.data().clone()).collect::<Vec<i64>>();
     /// assert_eq!(level_order, vec![0, 1, 4, 2, 3]);
     /// ```
-    pub fn traverse_level_order(&self) -> impl Iterator<Item = NodeRef<T>> {
+    pub fn traverse_level_order(&self) -> LevelOrder<'a, T> {
         LevelOrder::new(self, self.tree)
     }
 
