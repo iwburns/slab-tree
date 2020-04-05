@@ -303,9 +303,41 @@ impl<T> Tree<T> {
     /// ```
     ///
     pub fn remove(&mut self, node_id: NodeId, behavior: RemoveBehavior) -> Option<T> {
-        match behavior {
-            RemoveBehavior::DropChildren => self.remove_node_drop_children(node_id),
-            RemoveBehavior::OrphanChildren => self.remove_node_orphan_children(node_id),
+        if let Some(node) = self.get_node(node_id) {
+            let Relatives {
+                parent,
+                prev_sibling,
+                next_sibling,
+                ..
+            } = node.relatives;
+
+            let (is_first_child, is_last_child) = self.is_node_first_last_child(node_id);
+
+            if is_first_child {
+                // parent first child = my next sibling
+                self.set_first_child(parent.expect("parent must exist"), next_sibling);
+            }
+            if is_last_child {
+                // parent last child = my prev sibling
+                self.set_last_child(parent.expect("parent must exist"), prev_sibling);
+            }
+            if let Some(prev) = prev_sibling {
+                self.set_next_sibling(prev, next_sibling);
+            }
+            if let Some(next) = next_sibling {
+                self.set_prev_sibling(next, prev_sibling);
+            }
+
+            match behavior {
+                RemoveBehavior::DropChildren => self.drop_children(node_id),
+                RemoveBehavior::OrphanChildren => self.orphan_children(node_id),
+            };
+            if self.root_id == Some(node_id) {
+                self.root_id = None;
+            }
+            self.core_tree.remove(node_id)
+        } else {
+            unreachable!();
         }
     }
 
@@ -401,90 +433,30 @@ impl<T> Tree<T> {
         }
     }
 
-    fn remove_node_drop_children(&mut self, node_id: NodeId) -> Option<T> {
-        if let Some(node) = self.get_node(node_id) {
-            let Relatives {
-                parent,
-                prev_sibling,
-                next_sibling,
-                ..
-            } = node.relatives;
+    fn drop_children(&mut self, node_id: NodeId) {
+        let sub_tree_ids: Vec<NodeId> = self
+            .get(node_id)
+            .expect("node must exist")
+            .traverse_level_order()
+            .skip(1) // skip the "root" of the sub-tree, which is the "current" node
+            .map(|node_ref| node_ref.node_id())
+            .collect();
 
-            let (is_first_child, is_last_child) = self.is_node_first_last_child(node_id);
-
-            if is_first_child {
-                // parent first child = my next sibling
-                self.set_first_child(parent.expect("parent must exist"), next_sibling);
-            }
-            if is_last_child {
-                // parent last child = my prev sibling
-                self.set_last_child(parent.expect("parent must exist"), prev_sibling);
-            }
-            if let Some(prev) = prev_sibling {
-                self.set_next_sibling(prev, next_sibling);
-            }
-            if let Some(next) = next_sibling {
-                self.set_prev_sibling(next, prev_sibling);
-            }
-
-            let sub_tree_ids: Vec<NodeId> = self
-                .get(node_id)
-                .expect("node must exist")
-                .traverse_level_order()
-                .skip(1) // skip the "root" of the sub-tree, which is the "current" node
-                .map(|node_ref| node_ref.node_id())
-                .collect();
-
-            for id in sub_tree_ids {
-                self.core_tree.remove(id);
-            }
-
-            self.core_tree.remove(node_id)
-        } else {
-            unreachable!()
+        for id in sub_tree_ids {
+            self.core_tree.remove(id);
         }
     }
 
-    fn remove_node_orphan_children(&mut self, node_id: NodeId) -> Option<T> {
-        if let Some(node) = self.get_node(node_id) {
-            let Relatives {
-                parent,
-                prev_sibling,
-                next_sibling,
-                ..
-            } = node.relatives;
+    fn orphan_children(&mut self, node_id: NodeId) {
+        let child_ids: Vec<NodeId> = self
+            .get(node_id)
+            .expect("node must exist")
+            .children()
+            .map(|node_ref| node_ref.node_id())
+            .collect();
 
-            let (is_first_child, is_last_child) = self.is_node_first_last_child(node_id);
-
-            if is_first_child {
-                // parent first child = my next sibling
-                self.set_first_child(parent.expect("parent must exist"), next_sibling);
-            }
-            if is_last_child {
-                // parent last child = my prev sibling
-                self.set_last_child(parent.expect("parent must exist"), prev_sibling);
-            }
-            if let Some(prev) = prev_sibling {
-                self.set_next_sibling(prev, next_sibling);
-            }
-            if let Some(next) = next_sibling {
-                self.set_prev_sibling(next, prev_sibling);
-            }
-
-            let child_ids: Vec<NodeId> = self
-                .get(node_id)
-                .expect("node must exist")
-                .children()
-                .map(|node_ref| node_ref.node_id())
-                .collect();
-
-            for id in child_ids {
-                self.set_parent(id, None);
-            }
-
-            self.core_tree.remove(node_id)
-        } else {
-            unreachable!()
+        for id in child_ids {
+            self.set_parent(id, None);
         }
     }
 
@@ -626,6 +598,24 @@ mod tree_tests {
         let root_id = tree.root_id().expect("root doesn't exist?");
         let root = tree.get(root_id).unwrap();
         assert_eq!(root.data(), &1);
+    }
+
+    #[test]
+    fn remove_root_drop() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().expect("root doesn't exist?");
+
+        tree.remove(root_id, RemoveBehavior::DropChildren);
+        assert!(tree.root().is_none());
+    }
+
+    #[test]
+    fn remove_root_orphan() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let root_id = tree.root_id().expect("root doesn't exist?");
+
+        tree.remove(root_id, RemoveBehavior::OrphanChildren);
+        assert!(tree.root().is_none());
     }
 
     #[test]
