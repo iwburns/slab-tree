@@ -204,8 +204,7 @@ impl<'a, T> Iterator for LevelOrder<'a, T> {
                                 .tree
                                 .get(node_id)
                                 .expect("getting node of existing node ref id");
-                            let first_child_id =
-                                node.first_child().map(|child| child.node_id());
+                            let first_child_id = node.first_child().map(|child| child.node_id());
                             self.levels.push((
                                 node.node_id(),
                                 NextSiblings::new(first_child_id, self.tree),
