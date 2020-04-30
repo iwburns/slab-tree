@@ -337,7 +337,7 @@ impl<T> Tree<T> {
             }
             self.core_tree.remove(node_id)
         } else {
-            unreachable!();
+            None
         }
     }
 
@@ -486,7 +486,7 @@ impl<T> Tree<T> {
                 })
                 .unwrap_or((false, false))
         } else {
-            unreachable!()
+            (false, false)
         }
     }
 }
@@ -742,6 +742,15 @@ mod tree_tests {
 
         let five = tree.get_node(five_id);
         assert!(five.is_none());
+    }
+
+    /// Test that there is no panic if caller tries to remove a removed node
+    #[test]
+    fn address_dropped() {
+        let mut tree = TreeBuilder::new().with_root(1).build();
+        let two_id = tree.root_mut().expect("root doesn't exist").node_id();
+        tree.remove(two_id, DropChildren);
+        tree.remove(two_id, DropChildren);
     }
 
     #[test]
