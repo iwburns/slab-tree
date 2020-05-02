@@ -81,7 +81,7 @@ impl<'a, T> Iterator for PreOrder<'a, T> {
                 .push(NextSiblings::new(first_child_id, self.tree));
             Some(node)
         } else {
-            while self.children.len() > 0 {
+            while !self.children.is_empty() {
                 if let Some(node_ref) = self.children.last_mut().and_then(Iterator::next) {
                     if let Some(first_child) = node_ref.first_child() {
                         self.children
@@ -197,26 +197,23 @@ impl<'a, T> Iterator for LevelOrder<'a, T> {
                         let first_child_id = next.first_child().map(|child| child.node_id());
                         self.levels
                             .push((next.node_id(), NextSiblings::new(first_child_id, self.tree)));
-                    } else {
-                        if level == 1 {
-                            if on_level < next_level {
-                                on_level += 1;
-                                let node = self
-                                    .tree
-                                    .get(node_id)
-                                    .expect("getting node of existing node ref id");
-                                let first_child_id =
-                                    node.first_child().map(|child| child.node_id());
-                                self.levels.push((
-                                    node.node_id(),
-                                    NextSiblings::new(first_child_id, self.tree),
-                                ));
-                            } else {
-                                break;
-                            }
+                    } else if level == 1 {
+                        if on_level < next_level {
+                            on_level += 1;
+                            let node = self
+                                .tree
+                                .get(node_id)
+                                .expect("getting node of existing node ref id");
+                            let first_child_id = node.first_child().map(|child| child.node_id());
+                            self.levels.push((
+                                node.node_id(),
+                                NextSiblings::new(first_child_id, self.tree),
+                            ));
                         } else {
-                            level -= 1;
+                            break;
                         }
+                    } else {
+                        level -= 1;
                     }
                 }
             }
