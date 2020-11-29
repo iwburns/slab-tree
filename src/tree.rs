@@ -140,6 +140,7 @@ impl<T> Tree<T> {
         self.root_id = Some(new_root_id);
 
         self.set_first_child(new_root_id, old_root_id);
+        self.set_last_child(new_root_id, old_root_id);
 
         if let Some(node_id) = old_root_id {
             self.set_parent(node_id, self.root_id);
