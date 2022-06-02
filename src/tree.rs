@@ -94,7 +94,7 @@ impl<T> TreeBuilder<T> {
 ///
 /// A tree structure containing `Node`s.
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Tree<T> {
     pub(crate) root_id: Option<NodeId>,
     pub(crate) core_tree: CoreTree<T>,

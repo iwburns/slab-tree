@@ -15,7 +15,7 @@ pub(crate) struct Relatives {
     pub(crate) last_child: Option<NodeId>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Node<T> {
     pub(crate) data: T,
     pub(crate) relatives: Relatives,
