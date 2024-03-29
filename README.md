@@ -1,5 +1,15 @@
 # slab_tree
 
+## Project Status: No Longer Maintained
+
+This project is no longer actively maintained. I have coordinated with a new maintainer to take over the project.
+
+Please visit the [nary-tree](https://github.com/osimarr/nary-tree) project for the latest updates and contributions. 
+
+Thank you for your support and contributions to this project over the years!
+
+---
+
 [![Build Status](https://travis-ci.org/iwburns/slab-tree.svg?branch=master)](https://travis-ci.org/iwburns/slab-tree)
 [![](https://tokei.rs/b1/github/iwburns/slab-tree)](https://github.com/iwburns/slab-tree)
 
