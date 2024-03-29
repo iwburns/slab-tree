@@ -185,6 +185,22 @@ impl<'a, T> NodeMut<'a, T> {
     ///
     /// assert!(child.parent().is_some());
     /// assert_eq!(child.parent().unwrap().data(), &mut 1);
+    ///
+    ///
+    /// let mut tree = TreeBuilder::new().with_root(1).build();
+    /// tree.set_root(0);
+    /// tree
+    ///     .root_mut()
+    ///     .unwrap()
+    ///     .append(2);
+    /// assert_eq!(tree.root().unwrap().last_child().unwrap().data(), &2);
+    /// let mut s = String::new();
+    /// tree.write_formatted(&mut s).unwrap();
+    /// assert_eq!(&s, "\
+    /// 0
+    /// ├── 1
+    /// └── 2
+    /// ");
     /// ```
     ///
     pub fn append(&mut self, data: T) -> NodeMut<T> {
